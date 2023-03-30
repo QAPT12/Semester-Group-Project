@@ -1,3 +1,3 @@
 # Semester-Group-Project
 
-Semester grou project to build store using Python and SQL
+Semester group project to build store using Python and SQL
