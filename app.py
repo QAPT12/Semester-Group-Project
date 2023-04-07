@@ -11,6 +11,10 @@ class MainWindow(QMainWindow):
         self.initialize_pos_tab()
 
         self.initialize_inventory_tab()
+        
+        self.initialize_customers_tab()
+
+        self.initialize_invoices_tab()
 
     def initialize_pos_tab(self):
         """
@@ -112,9 +116,17 @@ class MainWindow(QMainWindow):
         self.btn_inventory_add_item.clicked.connect(self.btn_inventory_add_item_click_handler)
 
         self.btn_inventory_update_product = self.findChild(QPushButton, 'btn_inventory_update_product')
+        self.btn_inventory_update_product.clicked.connect(self.btn_inventory_update_product_clicked_handler)
+
         self.btn_inventory_delete_product = self.findChild(QPushButton, 'btn_inventory_delete_product')
+        self.btn_inventory_delete_product.clicked.connect(self.btn_inventory_delete_product_clicked_handler)
 
     def rdo_inventory_out_of_stock_change_handler(self):
+        """
+        method called when the radio button is triggered.
+        if the button is checked the tbl_inventory contents will be swapped to show items which have a stock level of 0.
+        if the button i unchecked the tbl_inventory will display all invneotry items as normal.
+        """
         status = self.sender()
         if status.isChecked():
             print('out of stock button checked')
@@ -122,11 +134,123 @@ class MainWindow(QMainWindow):
             print('out of stock button unchecked')
 
     def cmb_inventory_update_product_change_handler(self):
+        """
+        method called when the cmb_inventory_update_product index is changed.
+        will store the data of the product being updated in the inventory in temp variables using the QLineEdit items
+        allowing the user to make changes.
+        """
         print('product changed')
 
     def btn_inventory_add_item_click_handler(self):
+        """
+        method called when the btn_inventory_add_item is clicked.
+        takes the information from the QLineItems and adds them to the inventory.
+        """
         print('item added to inventory')
 
+    def btn_inventory_update_product_clicked_handler(self):
+        """
+        method called when the btn_inventory_update_product is clicked.
+        takes the information from the QLineEdits and updates the products information in the database
+        using the products ID code.
+        """
+        print('item updated in inventory')
+
+    def btn_inventory_delete_product_clicked_handler(self):
+        """
+        method called then the btn_inventory_delete_product is clicked.
+        using the temp data and product id from the cmb_inventory_product_update combo box
+        """
+        print('item deleted from inventory')
+
+    def initialize_customers_tab(self):
+        """
+        initializes all the tables and widgets on the customers tab
+        """
+        self.tbl_customers = self.findChild(QTableWidget, 'tbl_customers')
+        self.tbl_active_customers = self.findChild(QTableWidget, 'tbl_active_customers')
+
+        self.lbl_customers_new_results = self.findChild(QLabel, 'lbl_customers_new_results')
+        self.lbl_customers_update_results = self.findChild(QLabel, 'lbl_customers_update_results')
+
+        self.txt_customers_new_first_name = self.findChild(QTableWidget, 'txt_customers_new_first_name')
+        self.txt_customers_new_last_name = self.findChild(QTableWidget, 'txt_customers_new_last_name')
+        self.txt_customers_new_phone = self.findChild(QTableWidget, 'txt_customers_new_phone')
+        self.txt_customers_new_address = self.findChild(QTableWidget, 'txt_customers_new_address')
+        self.txt_customers_new_email = self.findChild(QTableWidget, 'txt_customers_new_email')
+        self.txt_customers_update_address = self.findChild(QTableWidget, 'txt_customers_update_address')
+        self.txt_customers_update_customer_id = self.findChild(QTableWidget, 'txt_customers_update_customer_id')
+        self.txt_customers_update_email = self.findChild(QTableWidget, 'txt_customers_update_email')
+        self.txt_customers_update_first_name = self.findChild(QTableWidget, 'txt_customers_update_first_name')
+        self.txt_customers_update_last_name = self.findChild(QTableWidget, 'txt_customers_update_last_name')
+        self.txt_customers_update_phone_num = self.findChild(QTableWidget, 'txt_customers_update_phone_num')
+
+        self.btn_customers_add_customer = self.findChild(QPushButton, 'btn_customers_add_customer')
+        self.btn_customers_add_customer.clicked.connect(self.btn_customers_add_customer_clicked_handler)
+
+        self.btn_customers_update_customer = self.findChild(QPushButton, 'btn_customers_update_customer')
+        self.btn_customers_update_customer.clicked.connect(self.btn_customers_update_customer_clicked_handler)
+
+        self.btn_customers_delete_customer = self.findChild(QPushButton, 'btn_customers_delete_customer')
+        self.btn_customers_delete_customer.clicked.connect(self.btn_customers_delete_customer_clicked_handler)
+
+        self.cmb_customers_update_customer = self.findChild(QComboBox, 'cmb_customers_update_customer')
+        self.cmb_customers_update_customer.currentIndexChanged.connect(self.cmb_customers_update_customer_change_handler)
+        
+    def btn_customers_add_customer_clicked_handler(self):
+        """
+        method called when the btn_customers_add_customer is clicked. 
+        grabs the info from the QLineEdit items and adds the customer to the database.
+        """
+        print('customer added')
+
+    def btn_customers_delete_customer_clicked_handler(self):
+        """
+        method called when the btn_customers_delete_customer is clicked.
+        using the customer id store in the QLineEdit will delete the customer from the database.
+        """
+        print('customer deleted')
+
+    def btn_customers_update_customer_clicked_handler(self):
+        """
+        method called when the btn_customers_update_customer is clicked.
+        using the customer id and the info from the QLineEdits will update the customers information in the database.
+        """
+        print('customer updated')
+
+    def cmb_customers_update_customer_change_handler(self):
+        """
+        method called when the cmb_customers_update_customer combo box's inde is changed.
+        grabs the info on the new customer from the database stores in temporary variables using the QLineEdit items.
+        """
+        print('customer changed')
+
+    def initialize_invoices_tab(self):
+        """
+        initrializes all the tables and widgets on the invoices tab.
+        """
+        self.tbl_invoices = self.findChild(QTableWidget, 'tbl_invoices')
+        self.tbl_invoices_items_purchased = self.findChild(QTableWidget, 'tbl_invoices_items_purchased')
+
+        self.txt_invoices_invoice_num = self.findChild(QLineEdit, 'txt_invoices_invoice_num')
+        self.txt_invoices_address = self.findChild(QLineEdit, 'txt_invoices_address')
+        self.txt_invoices_customer_id = self.findChild(QLineEdit, 'txt_invoices_customer_id')
+        self.txt_invoices_customer_name = self.findChild(QLineEdit, 'txt_invoices_customer_name')
+        self.txt_invoices_date = self.findChild(QLineEdit, 'txt_invoices_date')
+        self.txt_invoices_email = self.findChild(QLineEdit, 'txt_invoices_email')
+        self.txt_invoices_phone_num = self.findChild(QLineEdit, 'txt_invoices_phone_num')
+
+        self.btn_invoices_view_details = self.findChild(QPushButton, 'btn_invoices_view_details')
+        self.btn_invoices_view_details.clicked.connect(self.btn_invoices_view_details_click_handler)
+
+        self.btn_invoices_delete_invoice = self.findChild(QPushButton, 'btn_invoices_delete_invoice')
+        self.btn_invoices_delete_invoice.clicked.connect(self.btn_invoices_delete_invoice_clicked_handler)
+
+    def btn_invoices_view_details_click_handler(self):
+        print('invoice details')
+
+    def btn_invoices_delete_invoice_clicked_handler(self):
+        print('invoice deleted')
 
 
 if __name__ == '__main__':
