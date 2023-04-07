@@ -247,9 +247,19 @@ class MainWindow(QMainWindow):
         self.btn_invoices_delete_invoice.clicked.connect(self.btn_invoices_delete_invoice_clicked_handler)
 
     def btn_invoices_view_details_click_handler(self):
+        """
+        method called when the btn_invoices_view_details is clicked.
+        uses the invoice id from the txt_invoices_invoice_num to display the details of the invoice 
+        in the QLineEdit items on the invoice page and gets the information
+        of the items belonging to the invoice and disaplys in the tbl_invoices_items_purchased.
+        """
         print('invoice details')
 
     def btn_invoices_delete_invoice_clicked_handler(self):
+        """
+        method called when the btn_invoices_delete_invoice is clicked.
+        uses the invoice number from the txt_invoices_invoice_num to delete the invoice from database.
+        """
         print('invoice deleted')
 
 
