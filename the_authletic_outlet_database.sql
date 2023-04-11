@@ -64,7 +64,8 @@ VALUES (1, 'Air Max 90', 'Classic Nike sneakers', 100.00, 50),
 (2, 'Ultraboost 21', 'Comfortable Adidas running shoes', 150.00, 75),
 (2, 'Sweatpants', 'Comfortable and stylish pants', 50.00, 50),
 (3, 'HeatGear Armour', 'Under Armour compression shirt', 30.00, 150),
-(3, 'Recover Sleepwear', 'UAs specialized sleepwear', 60.00, 25);
+(3, 'Recover Sleepwear', 'UAs specialized sleepwear', 60.00, 25),
+(1, 'Hockey Helmet', 'Wayne Gretzky Signiture Helmet', 99.99, 0);
 
 INSERT INTO invoices (customer_id, order_date, ship_amount, tax_amount, shipping_address)
 VALUES (1, '2023-04-08', 10.00, 7.50, '123 Main St'),

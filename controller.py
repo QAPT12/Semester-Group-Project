@@ -74,7 +74,7 @@ def get_active_customers():
     :RETURNS:
         tuple: the resulting tuple containing the columns names and rows from the execute_query_return_results function
     """
-    sql = "SELECT customer_id, CONCAT(first_name, ' ', last_name) as name, email, home_address FROM customers join " \
+    sql = "SELECT customer_id, CONCAT(first_name, ' ', last_name) as name, phone_number, email, home_address FROM customers join " \
           "invoices using(customer_id) WHERE order_date >= now() - INTERVAL 1 MONTH;"
     return execute_query_return_results(sql)
 
@@ -84,7 +84,7 @@ FUNCTIONS TO PREFORM ACTIONS ON THE INVENTORY
 """
 
 
-def get_all_inventory_information():
+def get_all_inventory_information_in_stock():
     """
     function for getting all inventory information.
     calls the execute_query_return_results function to return the column names and 
@@ -93,9 +93,21 @@ def get_all_inventory_information():
     :RETURNS:
         tuple: the resulting tuple containing the column names and rows from the execute_query_return_results function.
     """
-    sql = 'SELECT * FROM products;'
+    sql = 'SELECT * FROM products WHERE products.in_stock > 0;'
     return execute_query_return_results(sql)
 
+
+def get_all_inventory_information_out_stock():
+    """
+    function for getting all inventory information.
+    calls the execute_query_return_results function to return the column names and 
+    all the rows containing the information on inventory items.
+
+    :RETURNS:
+        tuple: the resulting tuple containing the column names and rows from the execute_query_return_results function.
+    """
+    sql = 'SELECT * FROM products WHERE products.in_stock <= 0;'
+    return execute_query_return_results(sql)
 
 """
 FUNCTIONS TO PERFORM ACTIONS ON INVOICES
@@ -112,4 +124,4 @@ def get_all_invoice_information():
         tuple: the resulting tuple containing the column names and rows from the execute_query_return_results function.
     """
     sql = 'SELECT * FROM invoices;'
-    execute_query_return_results(sql)
+    return execute_query_return_results(sql)

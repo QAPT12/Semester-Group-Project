@@ -1,6 +1,7 @@
 from PyQt6 import uic
 from PyQt6.QtWidgets import *
 import sys
+from controller import *
 
 
 class MainWindow(QMainWindow):
@@ -15,6 +16,8 @@ class MainWindow(QMainWindow):
         self.initialize_customers_tab()
 
         self.initialize_invoices_tab()
+
+        self.refreshALL()
 
     def initialize_pos_tab(self):
         """
@@ -46,6 +49,8 @@ class MainWindow(QMainWindow):
         self.txt_pos_customer_phone = self.findChild(QLineEdit, 'txt_pos_customer_phone')
         self.txt_pos_customer_email = self.findChild(QLineEdit, 'txt_pos_customer_email')
         self.txt_customer_address = self.findChild(QLineEdit, 'txt_customer_address')
+
+
 
 
     def btn_pos_checkout_click_handler(self):
@@ -133,8 +138,13 @@ class MainWindow(QMainWindow):
         status = self.sender()
         if status.isChecked():
             print('out of stock button checked')
+            colNamesdata, data = get_all_inventory_information_out_stock()
+            self.refreshTable(self.tbl_inventory, data, ('Product ID', 'Vendor ID', 'Product Name', 'Product Description', 'Product Price', 'Amount In Stock'))
         else:
             print('out of stock button unchecked')
+            colNamesdata, data = get_all_inventory_information_in_stock()
+            self.refreshTable(self.tbl_inventory, data, ('Product ID', 'Vendor ID', 'Product Name', 'Product Description', 'Product Price', 'Amount In Stock'))
+        
 
     def cmb_inventory_update_product_change_handler(self):
         """
@@ -264,6 +274,54 @@ class MainWindow(QMainWindow):
         uses the invoice number from the txt_invoices_invoice_num to delete the invoice from database.
         """
         print('invoice deleted')
+
+
+    def refreshTable(self, table, rows, columns):
+        """
+            Refreshes a table with new data.
+
+            Args:
+            table (QTableWidget): The QTableWidget object to refresh.
+            rows (list): A list of lists, where each sub-list contains the data for a row in the table.
+            columns (list): A list of strings, where each string represents the name of a column in the table.
+        """
+        table.setRowCount(len(rows))
+        table.setColumnCount(len(columns))
+        for i in range(len(rows)):
+            row = rows[i]
+            for j in range(len(row)):
+                table.setItem(i, j, QTableWidgetItem(str(row[j])))
+        for i in range(table.columnCount()):
+            table.setHorizontalHeaderItem(i, QTableWidgetItem(f'{columns[i]}'))
+
+
+    def refreshALL(self):
+        """
+            Refreshes All Tables and Combo Boxes
+        """
+        # Tables
+        colNames, data = get_all_customer_information()
+        self.refreshTable(self.tbl_customers, data, ('Customer ID', 'First Name', 'Last Name', 'Phone Number', 'Email', 'Home Address'))
+        
+        colNames, data = get_active_customers()
+        self.refreshTable(self.tbl_active_customers, data, ('Customer ID', 'Full Name', 'Phone Number', 'Email', 'Home Address'))
+
+        colNamesdata, data = get_all_invoice_information()
+        self.refreshTable(self.tbl_invoices, data, ('Invoice ID', 'Customer ID', 'Order Date', 'Shipping Amount', 'Tax Amount', 'Shipping Address'))
+
+        colNamesdata, data = get_all_inventory_information_in_stock()
+        self.refreshTable(self.tbl_inventory, data, ('Product ID', 'Vendor ID', 'Product Name', 'Product Description', 'Product Price', 'Amount In Stock'))
+        
+        colNamesdata, data = get_all_inventory_information_in_stock()
+        self.refreshTable(self.tbl_pos_invoice, data, ('Product ID', 'Vendor ID', 'Product Name', 'Product Description', 'Product Price', 'Amount In Stock'))
+
+
+        # self.cboDoctorInfo.clear()
+
+        # CboBox
+        # colNames, rows = getDoctorIdsAndNames()
+        # for row in rows:
+        #     self.cboDoctorInfo.addItem(row[1], userData=row[0])
 
 
 if __name__ == '__main__':
