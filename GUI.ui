@@ -329,7 +329,7 @@
           <x>10</x>
           <y>40</y>
           <width>381</width>
-          <height>141</height>
+          <height>191</height>
          </rect>
         </property>
         <layout class="QFormLayout" name="formLayout">
@@ -412,13 +412,36 @@
            </property>
           </spacer>
          </item>
+         <item row="8" column="0">
+          <widget class="QLabel" name="label_39">
+           <property name="text">
+            <string>Vendor:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <spacer name="verticalSpacer_19">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="8" column="1">
+          <widget class="QComboBox" name="cmb_inventory_add_vendor"/>
+         </item>
         </layout>
        </widget>
        <widget class="QPushButton" name="btn_inventory_add_item">
         <property name="geometry">
          <rect>
           <x>10</x>
-          <y>200</y>
+          <y>240</y>
           <width>181</width>
           <height>61</height>
          </rect>
@@ -588,6 +611,16 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="9" column="0">
+          <widget class="QLabel" name="label_40">
+           <property name="text">
+            <string>Vendor:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="QComboBox" name="cmb_inventory_update_vendor"/>
          </item>
         </layout>
        </widget>

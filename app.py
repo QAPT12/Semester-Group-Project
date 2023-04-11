@@ -112,6 +112,9 @@ class MainWindow(QMainWindow):
         self.cmb_inventory_update_product = self.findChild(QComboBox, 'cmb_inventory_update_product')
         self.cmb_inventory_update_product.currentIndexChanged.connect(self.cmb_inventory_update_product_change_handler)
 
+        self.cmb_inventory_update_vendor = self.findChild(QComboBox, 'cmb_inventory_update_vendor')
+        self.cmb_inventory_add_vendor = self.findChild(QComboBox, 'cmb_inventory_add_vendor')
+        
         self.btn_inventory_add_item = self.findChild(QPushButton, 'btn_inventory_add_item')
         self.btn_inventory_add_item.clicked.connect(self.btn_inventory_add_item_click_handler)
 
@@ -137,21 +140,21 @@ class MainWindow(QMainWindow):
         """
         method called when the cmb_inventory_update_product index is changed.
         will store the data of the product being updated in the inventory in temp variables using the QLineEdit items
-        allowing the user to make changes.
+        and vendor combo box allowing the user to make changes.
         """
         print('product changed')
 
     def btn_inventory_add_item_click_handler(self):
         """
         method called when the btn_inventory_add_item is clicked.
-        takes the information from the QLineItems and adds them to the inventory.
+        takes the information from the QLineItems and vendor combo box and adds them to the inventory.
         """
         print('item added to inventory')
 
     def btn_inventory_update_product_clicked_handler(self):
         """
         method called when the btn_inventory_update_product is clicked.
-        takes the information from the QLineEdits and updates the products information in the database
+        takes the information from the QLineEdits and vendor combo box and updates the products information in the database
         using the products ID code.
         """
         print('item updated in inventory')
