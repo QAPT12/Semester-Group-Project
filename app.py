@@ -1,6 +1,7 @@
 from PyQt6 import uic
 from PyQt6.QtWidgets import *
 import sys
+from controller import *
 
 
 class MainWindow(QMainWindow):
@@ -15,6 +16,8 @@ class MainWindow(QMainWindow):
         self.initialize_customers_tab()
 
         self.initialize_invoices_tab()
+
+        self.populate_all_tables()
 
     def initialize_pos_tab(self):
         """
@@ -33,7 +36,6 @@ class MainWindow(QMainWindow):
 
         self.btn_pos_remove_item = self.findChild(QPushButton, 'btn_pos_remove_item')
         self.btn_pos_remove_item.clicked.connect(self.btn_pos_remove_item_click_handler)
-
 
         self.cmb_pos_items = self.findChild(QComboBox, 'cmb_pos_items')
         self.cmb_pos_items.currentIndexChanged.connect(self.cmb_pos_items_change_handler)
@@ -228,6 +230,28 @@ class MainWindow(QMainWindow):
         """
         print('customer changed')
 
+    def populate_customer_table(self):
+        """
+        method called to populate/refresh the customer table on the customers tab.
+        """
+        self.tbl_customers.setColumnCount(6)
+        self.tbl_customers.verticalHeader().setVisible(False)
+        self.tbl_customers.setHorizontalHeaderLabels(['ID', 'First Name', 'Last Name', 'Phone Num.', 'Email', 'Address'])
+        customers_info = get_all_customer_information()[1]
+        self.tbl_customers.setRowCount(len(customers_info))
+        for i in range(len(customers_info)):
+            row = customers_info[i]
+            for j in range(len(row)):
+                self.tbl_customers.setItem(i, j, QTableWidgetItem(str(row[j])))
+        self.tbl_customers.resizeColumnsToContents()
+        self.tbl_customers.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
+
+    def populate_active_customers_table(self):
+        """
+        method called to populate.refresh the active customer table on the customers tab.
+        """
+        self.tbl_active_customers.setColumnCount(4)
+
     def initialize_invoices_tab(self):
         """
         initrializes all the tables and widgets on the invoices tab.
@@ -264,6 +288,14 @@ class MainWindow(QMainWindow):
         uses the invoice number from the txt_invoices_invoice_num to delete the invoice from database.
         """
         print('invoice deleted')
+
+    def populate_all_tables(self):
+        """
+        method for populating/ refreshing all the tables in the gui. Use when app is first loaded or when
+        large changes are made that affect all tables.
+        """
+        self.populate_customer_table()
+
 
 
 if __name__ == '__main__':

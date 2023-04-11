@@ -37,6 +37,18 @@ def get_customer_information_by_id(customer_id):
     return customer_information
 
 
+def get_active_customers():
+    """
+    function to get all the customers who have had an invoice within the last month.
+
+    :RETURNS:
+        tuple: the resulting tuple containing the columns names and rows from the execute_query_return_results function
+    """
+    sql = "SELECT customer_id, CONCAT(first_name, ' ', last_name) as name, email, home_address FROM customers join " \
+          "invoices using(customer_id) WHERE order_date >= now() - INTERVAL 1 MONTH;"
+    return execute_query_return_results(sql)
+
+
 def add_customer(first_name, last_name, phone_number, email, address):
     """
     function called when you want to add a customer to the DB.
@@ -53,6 +65,7 @@ def add_customer(first_name, last_name, phone_number, email, address):
     sql = f"INSERT INTO customers VALUES (default, '{first_name}', '{last_name}', '{phone_number}', '{email}', '{address}')"
     return execute_query_commit(sql)
 
+
 def delete_customer_by_id(customer_id):
     """
     function to delete a customer using the given customer id.
@@ -65,18 +78,6 @@ def delete_customer_by_id(customer_id):
     """
     sql = f'DELETE FROM customers WHERE customer_id = {customer_id}'
     return execute_query_commit(sql)
-
-
-def get_active_customers():
-    """
-    function to get all the customers who have had an invoice within the last month.
-
-    :RETURNS:
-        tuple: the resulting tuple containing the columns names and rows from the execute_query_return_results function
-    """
-    sql = "SELECT customer_id, CONCAT(first_name, ' ', last_name) as name, email, home_address FROM customers join " \
-          "invoices using(customer_id) WHERE order_date >= now() - INTERVAL 1 MONTH;"
-    return execute_query_return_results(sql)
 
 
 """
