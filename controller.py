@@ -165,15 +165,16 @@ def get_invoice_information_by_id(invoice_id):
 
 
 def delete_invoice_by_id(invoice_id):
+    """
+    function to delete an invoice from the DB. uses the given invoice_id and calls the stored procedure to delete
+    all invoice line items and invoices with the given invoice_id.
+
+    :PARAM:
+        invoice_id: int: the id of the invoice to be deleted
+
+    :RETURNS:
+        int: the resulting number of rows affected by the execute_query_commit function
+    """
     assert type(invoice_id) == int, 'invoice id must be given as an int'
     sql = f"call the_athletic_outlet.delete_invoice_by_id({invoice_id});"
     return execute_query_commit(sql)
-
-
-if __name__ == '__main__':
-    try:
-        a = delete_invoice_by_id(3)
-        print(a)
-    except Exception as e:
-        print(type(e))
-        print(e)
