@@ -82,6 +82,20 @@ def add_customer(first_name, last_name, phone_number, email, address):
 
 
 def update_customer_by_id(customer_id, first_name, last_name, phone_number, email, address):
+    """
+    function to update a customers information given a customer id
+
+    :PARAM:
+        customer_id: int: the id of the customers whose info is being updated.
+        first_name: str: first name of the customer
+        last_name: str: last name of the customer
+        phone_number: str: phone number of the customer
+        email: str: email of the customer
+        address: str: address of the customer
+
+    :RETURNS:
+        int: the number of rows affected from the execute_query_commit function
+    """
     assert type(customer_id) == int, 'customer id must be an int'
     sql = f"UPDATE customers SET first_name = '{first_name}', last_name = '{last_name}', phone_number = '{phone_number}'," \
           f"email = '{email}', home_address = '{address}' WHERE customer_id = {customer_id}"
@@ -136,6 +150,51 @@ def get_all_inventory_information_out_stock():
     """
     sql = 'SELECT * FROM products WHERE products.in_stock <= 0;'
     return execute_query_return_results(sql)
+
+
+def add_product_to_inventory(vendor_id, product_name, product_description, product_price, stock):
+    assert type(vendor_id) == int, 'vendor id must be an integer value'
+    assert type(stock) == int, 'stock value must be an integer value'
+    assert type(product_price) == float, 'product price must be numerical'
+    assert product_price >= 0, 'product price must be positive value'
+    assert product_name != '', 'product name cannot be empty'
+    assert product_description != '', 'product description cannot be empty'
+    sql = f"INSERT INTO `the_athletic_outlet`.`products` (`product_id`, `vendor_id`, `product_name`, " \
+          f"`product_description`, `product_price`, `in_stock`) VALUES (default, '{vendor_id}', '{product_name}', " \
+          f"'{product_description}', '{product_price}', '{stock}');"
+    return execute_query_commit(sql)
+
+
+def update_product_info_using_product_id(product_id, product_name, product_description, product_price, in_stock):
+    assert type(product_id) == int, 'product id must be given as an integer value'
+    assert type(product_price) == float, 'product price must be numerical'
+    assert type(in_stock) == int, 'stock amount must be integer value'
+    assert product_price >= 0, 'product price cannot be negative'
+    assert in_stock >= 0, 'cannot have negative stock'
+    sql = F"UPDATE `the_athletic_outlet`.`products` SET `product_name` = '{product_name}', `product_description` = '{product_description}', " \
+          F"`product_price` = '{product_price}', `in_stock` = '{in_stock}' WHERE (`product_id` = '{product_id}');"
+    return execute_query_commit(sql)
+
+
+def get_vendor_names_ids():
+    sql = 'SELECT vendor_id, vendor_name FROM vendors;'
+    return execute_query_return_results(sql)
+
+
+def get_product_names_and_ids():
+    sql = 'SELECT product_id, product_name FROM products;'
+    return execute_query_return_results(sql)
+
+
+def get_product_information_by_id(product_id):
+    assert type(product_id) == int, 'given value for product id must be an INT'
+    sql = f'SELECT p.product_id, vendor_name, product_name, product_description, product_price, in_stock FROM ' \
+          f'products p JOIN vendors v USING(vendor_id) WHERE product_id = {product_id};'
+    results = execute_query_return_results(sql)[1]
+    product_information = {'product_id': results[0][0], 'vendor': results[0][1], 'product_name': results[0][2],
+                           'product_description': results[0][3], 'product_price': results[0][4],
+                           'in_stock': results[0][5]}
+    return product_information
 
 
 """
@@ -216,7 +275,7 @@ def get_invoices_by_customer_id(customer_id):
         customer_id: int: the id of the customer you want the invoices for
 
     :RETURNS:
-        a list containing the invoice_id's (which are in a tuple because of how the execute query function works)
+        list: a list containing the invoice_id's (which are in a tuple because of how the execute query function works)
         belonging to the customer
     """
     assert type(customer_id) == int, 'customer id must be given as an int'
