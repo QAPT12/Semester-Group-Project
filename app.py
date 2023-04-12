@@ -4,6 +4,7 @@ import sys
 from controller import *
 
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -174,10 +175,16 @@ class MainWindow(QMainWindow):
         print('item deleted from inventory')
 
     def populate_inventory_table_in_stock(self):
+        """
+        method for populating the inventory table to show in stock items.
+        """
         rows = get_all_inventory_information_in_stock()[1]
         self.populate_table(self.tbl_inventory, rows, ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
 
     def populate_inventory_table_out_of_stock(self):
+        """
+        method for populating the inventory table to show items which are out of stock.
+        """
         rows = get_all_inventory_information_out_stock()[1]
         self.populate_table(self.tbl_inventory, rows, ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
 
@@ -309,15 +316,23 @@ class MainWindow(QMainWindow):
         uses the invoice number from the txt_invoices_invoice_num to delete the invoice from database.
         """
         invoice_id = int(self.txt_invoices_invoice_num.text())
-        delete_invoice_by_id(invoice_id)
-        self.txt_invoices_address.clear()
-        self.txt_invoices_customer_id.clear()
-        self.txt_invoices_customer_name.clear()
-        self.txt_invoices_email.clear()
-        self.txt_invoices_phone_num.clear()
-        self.txt_invoices_date.clear()
-        self.tbl_invoices_items_purchased.clear()
-        self.populate_invoices_table()
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Delete Confirmation")
+        msg.setText(f"Are you sure you want to delete invoice {invoice_id}? this cannot be undone.")
+        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg.setIcon(QMessageBox.Icon.Question)
+        button = msg.exec()
+        if button == QMessageBox.StandardButton.Yes:
+            delete_invoice_by_id(invoice_id)
+            self.txt_invoices_address.clear()
+            self.txt_invoices_customer_id.clear()
+            self.txt_invoices_customer_name.clear()
+            self.txt_invoices_email.clear()
+            self.txt_invoices_phone_num.clear()
+            self.txt_invoices_date.clear()
+            self.tbl_invoices_items_purchased.clear()
+            self.populate_invoices_table()
+
 
     def populate_invoices_table(self):
         """
@@ -367,6 +382,13 @@ class MainWindow(QMainWindow):
         self.populate_active_customers_table()
         self.populate_inventory_table_in_stock()
         self.populate_invoices_table()
+
+    def refresh_all_combo_boxes(self):
+        """
+        method for refreshing all combo boxes in the gui. use when app is first loaded or when an update is performed
+        on data being used in the combo box.
+        """
+        pass
 
 
 if __name__ == '__main__':
