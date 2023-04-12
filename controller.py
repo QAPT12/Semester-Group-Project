@@ -48,6 +48,17 @@ def get_customer_information_by_id(customer_id):
     return customer_information
 
 
+def get_customer_names_ids():
+    """
+    method for getting all customer names and their ids. used for populating combo boxes.
+
+    :RETURNS:
+        tuple: tuple: the resulting tuple containing the column names and rows from the execute_query_return_results function.
+    """
+    sql = "SELECT customer_id, CONCAT(first_name, ' ', last_name) as name FROM customers;"
+    return execute_query_return_results(sql)
+
+
 def add_customer(first_name, last_name, phone_number, email, address):
     """
     function called when you want to add a customer to the DB.
@@ -65,9 +76,17 @@ def add_customer(first_name, last_name, phone_number, email, address):
     return execute_query_commit(sql)
 
 
+def update_customer_by_id(customer_id, first_name, last_name, phone_number, email, address):
+    assert type(customer_id) == int, 'customer id must be an int'
+    sql = f"UPDATE customers SET first_name = '{first_name}', last_name = '{last_name}', phone_number = '{phone_number}'," \
+          f"email = '{email}', home_address = '{address}' WHERE customer_id = {customer_id}"
+    return execute_query_commit(sql)
+
+
 def delete_customer_by_id(customer_id):
     """
-    function to delete a customer using the given customer id.
+    function to delete a customer using the given customer id. first deletes all the invoices belonging to the customer
+    then deletes the customer from the DB.
 
     :PARAM:
         customer_id: int: the id of the customer you wish to delete.
@@ -75,7 +94,11 @@ def delete_customer_by_id(customer_id):
     :RETURNS:
         int: the count of the affected rows from the execute_query_commit function
     """
-    sql = f'DELETE FROM customers WHERE customer_id = {customer_id}'
+    customers_invoices = get_invoices_by_customer_id(customer_id)
+    for invoice in customers_invoices:
+        invoice_id = invoice[0]
+        delete_invoice_by_id(invoice_id)
+    sql = f"DELETE FROM customers WHERE customer_id = {customer_id}"
     return execute_query_commit(sql)
 
 
@@ -178,3 +201,20 @@ def delete_invoice_by_id(invoice_id):
     assert type(invoice_id) == int, 'invoice id must be given as an int'
     sql = f"call the_athletic_outlet.delete_invoice_by_id({invoice_id});"
     return execute_query_commit(sql)
+
+
+def get_invoices_by_customer_id(customer_id):
+    """
+    function to get all the invoices belonging to a customer
+
+    :PARAM:
+        customer_id: int: the id of the customer you want the invoices for
+
+    :RETURNS:
+        a list containing the invoice_id's (which are in a tuple because of how the execute query function works)
+        belonging to the customer
+    """
+    assert type(customer_id) == int, 'customer id must be given as an int'
+    sql = f"SELECT invoice_id from invoices WHERE customer_id = {customer_id};"
+    invoices = execute_query_return_results(sql)[1]
+    return invoices
