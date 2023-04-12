@@ -72,6 +72,11 @@ def add_customer(first_name, last_name, phone_number, email, address):
     :RETURNS: 
         int: the count of the rows affected from the execute_query_commit function
     """
+    assert first_name != '', 'first name cannot be left blank'
+    assert last_name != '', 'last name cannot be left blank'
+    assert phone_number != '', 'phone number cannot be left blank'
+    assert email != '', 'email cannot be left blank'
+    assert address != '', 'address cannot be left blank'
     sql = f"INSERT INTO customers VALUES (default, '{first_name}', '{last_name}', '{phone_number}', '{email}', '{address}')"
     return execute_query_commit(sql)
 

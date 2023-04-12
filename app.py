@@ -229,7 +229,8 @@ class MainWindow(QMainWindow):
         self.btn_customers_delete_customer.clicked.connect(self.btn_customers_delete_customer_clicked_handler)
 
         self.cmb_customers_update_customer = self.findChild(QComboBox, 'cmb_customers_update_customer')
-        self.cmb_customers_update_customer.currentIndexChanged.connect(self.cmb_customers_update_customer_change_handler)
+        self.cmb_customers_update_customer.currentIndexChanged.connect(
+            self.cmb_customers_update_customer_change_handler)
 
     def btn_customers_add_customer_clicked_handler(self):
         """
@@ -241,65 +242,82 @@ class MainWindow(QMainWindow):
         phone_num = self.txt_customers_new_phone.text()
         address = self.txt_customers_new_address.text()
         email = self.txt_customers_new_email.text()
-        result = add_customer(first_name, last_name, phone_num, email, address)
-        if result == 1:
-            self.lbl_customers_new_results.setText('Customer added')
-        self.txt_customers_new_address.clear()
-        self.txt_customers_new_email.clear()
-        self.txt_customers_new_first_name.clear()
-        self.txt_customers_new_last_name.clear()
-        self.txt_customers_new_phone.clear()
-        self.populate_update_customers_cmb_box()
-        self.populate_customer_table()
-        self.populate_active_customers_table()
-
+        try:
+            result = add_customer(first_name, last_name, phone_num, email, address)
+            if result == 1:
+                self.lbl_customers_new_results.setText('Customer added')
+                self.txt_customers_new_address.clear()
+                self.txt_customers_new_email.clear()
+                self.txt_customers_new_first_name.clear()
+                self.txt_customers_new_last_name.clear()
+                self.txt_customers_new_phone.clear()
+                self.populate_update_customers_cmb_box()
+                self.populate_customer_table()
+                self.populate_active_customers_table()
+        except Exception as e:
+            self.lbl_customers_new_results.setText(str(e))
 
     def btn_customers_delete_customer_clicked_handler(self):
         """
         method called when the btn_customers_delete_customer is clicked.
         using the customer id store in the QLineEdit will delete the customer from the database.
         """
-        customer_id = int(self.txt_customers_update_customer_id.text())
-        result = delete_customer_by_id(customer_id)
-        if result == 1:
-            self.lbl_customers_update_results.setText('Customer Deleted')
-        self.txt_customers_update_address.clear()
-        self.txt_customers_update_customer_id.clear()
-        self.txt_customers_update_email.clear()
-        self.txt_customers_update_first_name.clear()
-        self.txt_customers_update_last_name.clear()
-        self.txt_customers_update_phone_num.clear()
-        self.populate_update_customers_cmb_box()
-        self.populate_customer_table()
-        self.populate_active_customers_table()
+        if self.cmb_customers_update_customer.currentData() in ['select', None]:
+            self.lbl_customers_update_results.setText('Must have a customer selected to perform an update or delete.')
+        else:
+            try:
+                msg = QMessageBox(self)
+                msg.setWindowTitle("Delete Confirmation")
+                msg.setText(f"Are you sure you want to delete {self.txt_customers_update_first_name.text()} "
+                            f"{self.txt_customers_update_last_name.text()}? this will also delete all invoices belonging to this "
+                            f"customer.")
+                msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                msg.setIcon(QMessageBox.Icon.Question)
+                button = msg.exec()
+                if button == QMessageBox.StandardButton.Yes:
+                    customer_id = int(self.txt_customers_update_customer_id.text())
+                    result = delete_customer_by_id(customer_id)
+                    if result == 1:
+                        self.lbl_customers_update_results.setText('Customer Deleted')
+                        self.txt_customers_update_address.clear()
+                        self.txt_customers_update_customer_id.clear()
+                        self.txt_customers_update_email.clear()
+                        self.txt_customers_update_first_name.clear()
+                        self.txt_customers_update_last_name.clear()
+                        self.txt_customers_update_phone_num.clear()
+                        self.populate_update_customers_cmb_box()
+                        self.populate_all_tables()
+            except Exception as e:
+                self.lbl_customers_update_results.setText(str(e))
 
     def btn_customers_update_customer_clicked_handler(self):
         """
         method called when the btn_customers_update_customer is clicked.
         using the customer id and the info from the QLineEdits will update the customers information in the database.
         """
-        try:
-            customer_id = int(self.txt_customers_update_customer_id.text())
-            address = self.txt_customers_update_address.text()
-            email = self.txt_customers_update_email.text()
-            first_name = self.txt_customers_update_first_name.text()
-            last_name = self.txt_customers_update_last_name.text()
-            phone_num = self.txt_customers_update_phone_num.text()
-            result = update_customer_by_id(customer_id, first_name, last_name, phone_num, email, address)
-            if result == 1:
-                self.lbl_customers_update_results.setText('Customer information updated')
-            self.txt_customers_update_address.clear()
-            self.txt_customers_update_customer_id.clear()
-            self.txt_customers_update_email.clear()
-            self.txt_customers_update_first_name.clear()
-            self.txt_customers_update_last_name.clear()
-            self.txt_customers_update_phone_num.clear()
-            self.populate_update_customers_cmb_box()
-            self.populate_customer_table()
-            self.populate_active_customers_table()
-        except Exception as e:
-            print(e)
-
+        if self.cmb_customers_update_customer.currentData() in ['select', None]:
+            self.lbl_customers_update_results.setText('Must have a customer selected to perform an update or delete.')
+        else:
+            try:
+                customer_id = int(self.txt_customers_update_customer_id.text())
+                address = self.txt_customers_update_address.text()
+                email = self.txt_customers_update_email.text()
+                first_name = self.txt_customers_update_first_name.text()
+                last_name = self.txt_customers_update_last_name.text()
+                phone_num = self.txt_customers_update_phone_num.text()
+                result = update_customer_by_id(customer_id, first_name, last_name, phone_num, email, address)
+                if result == 1:
+                    self.lbl_customers_update_results.setText('Customer information updated')
+                self.txt_customers_update_address.clear()
+                self.txt_customers_update_customer_id.clear()
+                self.txt_customers_update_email.clear()
+                self.txt_customers_update_first_name.clear()
+                self.txt_customers_update_last_name.clear()
+                self.txt_customers_update_phone_num.clear()
+                self.populate_update_customers_cmb_box()
+                self.populate_all_tables()
+            except Exception as e:
+                self.lbl_customers_update_results.setTest(str(e))
 
     def cmb_customers_update_customer_change_handler(self):
         """
@@ -377,38 +395,84 @@ class MainWindow(QMainWindow):
         in the QLineEdit items on the invoice page and gets the information
         of the items belonging to the invoice and displays in the tbl_invoices_items_purchased.
         """
-        invoice_id = int(self.txt_invoices_invoice_num.text())
-        invoice_info = get_invoice_information_by_id(invoice_id)
-        self.txt_invoices_address.setText(invoice_info['address'])
-        self.txt_invoices_customer_id.setText(str(invoice_info['customer_id']))
-        self.txt_invoices_customer_name.setText(invoice_info['name'])
-        self.txt_invoices_email.setText(invoice_info['email'])
-        self.txt_invoices_phone_num.setText(invoice_info['phone_number'])
-        self.txt_invoices_date.setText(invoice_info['date'])
-        self.populate_invoices_items_table()
+        try:
+            invoice_id = int(self.txt_invoices_invoice_num.text())
+            invoice_info = get_invoice_information_by_id(invoice_id)
+            self.txt_invoices_address.setText(invoice_info['address'])
+            self.txt_invoices_customer_id.setText(str(invoice_info['customer_id']))
+            self.txt_invoices_customer_name.setText(invoice_info['name'])
+            self.txt_invoices_email.setText(invoice_info['email'])
+            self.txt_invoices_phone_num.setText(invoice_info['phone_number'])
+            self.txt_invoices_date.setText(invoice_info['date'])
+            self.populate_invoices_items_table()
+        except IndexError:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Error")
+            msg.setText("Invoice Number does not exist")
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+        except ValueError:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Error")
+            msg.setText("Invoice Number must be an integer value")
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+        except Exception as e:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Error")
+            msg.setText(type(e))
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+
 
     def btn_invoices_delete_invoice_clicked_handler(self):
         """
         method called when the btn_invoices_delete_invoice is clicked.
         uses the invoice number from the txt_invoices_invoice_num to delete the invoice from database.
         """
-        invoice_id = int(self.txt_invoices_invoice_num.text())
-        msg = QMessageBox(self)
-        msg.setWindowTitle("Delete Confirmation")
-        msg.setText(f"Are you sure you want to delete invoice {invoice_id}? this cannot be undone.")
-        msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        msg.setIcon(QMessageBox.Icon.Question)
-        button = msg.exec()
-        if button == QMessageBox.StandardButton.Yes:
-            delete_invoice_by_id(invoice_id)
-            self.txt_invoices_address.clear()
-            self.txt_invoices_customer_id.clear()
-            self.txt_invoices_customer_name.clear()
-            self.txt_invoices_email.clear()
-            self.txt_invoices_phone_num.clear()
-            self.txt_invoices_date.clear()
-            self.tbl_invoices_items_purchased.clear()
-            self.populate_invoices_table()
+        try:
+            invoice_id = int(self.txt_invoices_invoice_num.text())
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Delete Confirmation")
+            msg.setText(f"Are you sure you want to delete invoice {invoice_id}? this cannot be undone.")
+            msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            msg.setIcon(QMessageBox.Icon.Question)
+            button = msg.exec()
+            if button == QMessageBox.StandardButton.Yes:
+                delete_invoice_by_id(invoice_id)
+                self.txt_invoices_address.clear()
+                self.txt_invoices_customer_id.clear()
+                self.txt_invoices_customer_name.clear()
+                self.txt_invoices_email.clear()
+                self.txt_invoices_phone_num.clear()
+                self.txt_invoices_date.clear()
+                self.tbl_invoices_items_purchased.clear()
+                self.populate_invoices_table()
+        except IndexError:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Error")
+            msg.setText("Invoice Number does not exist")
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+        except ValueError:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Error")
+            msg.setText("Invoice Number must be an integer value")
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+        except Exception as e:
+            msg = QMessageBox(self)
+            msg.setWindowTitle("Error")
+            msg.setText(type(e))
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.exec()
+
 
     def populate_invoices_table(self):
         """
