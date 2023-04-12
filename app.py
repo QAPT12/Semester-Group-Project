@@ -4,7 +4,6 @@ import sys
 from controller import *
 
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -20,9 +19,12 @@ class MainWindow(QMainWindow):
 
         self.populate_all_tables()
 
+        self.populate_all_combo_boxes()
+
     """
     VVVV METHODS FOR THE POS TAB VVVV
     """
+
     def initialize_pos_tab(self):
         """
         initializes the tables and widgets located on the POS tab of the GUI
@@ -95,6 +97,7 @@ class MainWindow(QMainWindow):
     """
     VVVV METHODS FOR THE INVENTORY TAB VVVV
     """
+
     def initialize_inventory_tab(self):
         """
         initializes all the tabs and widgets on the inventory page.
@@ -179,18 +182,21 @@ class MainWindow(QMainWindow):
         method for populating the inventory table to show in stock items.
         """
         rows = get_all_inventory_information_in_stock()[1]
-        self.populate_table(self.tbl_inventory, rows, ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
+        self.populate_table(self.tbl_inventory, rows,
+                            ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
 
     def populate_inventory_table_out_of_stock(self):
         """
         method for populating the inventory table to show items which are out of stock.
         """
         rows = get_all_inventory_information_out_stock()[1]
-        self.populate_table(self.tbl_inventory, rows, ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
+        self.populate_table(self.tbl_inventory, rows,
+                            ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
 
     """
     VVVV METHODS FOR THE CUSTOMERS TAB VVVV
     """
+
     def initialize_customers_tab(self):
         """
         initializes all the tables and widgets on the customers tab
@@ -201,17 +207,17 @@ class MainWindow(QMainWindow):
         self.lbl_customers_new_results = self.findChild(QLabel, 'lbl_customers_new_results')
         self.lbl_customers_update_results = self.findChild(QLabel, 'lbl_customers_update_results')
 
-        self.txt_customers_new_first_name = self.findChild(QTableWidget, 'txt_customers_new_first_name')
-        self.txt_customers_new_last_name = self.findChild(QTableWidget, 'txt_customers_new_last_name')
-        self.txt_customers_new_phone = self.findChild(QTableWidget, 'txt_customers_new_phone')
-        self.txt_customers_new_address = self.findChild(QTableWidget, 'txt_customers_new_address')
-        self.txt_customers_new_email = self.findChild(QTableWidget, 'txt_customers_new_email')
-        self.txt_customers_update_address = self.findChild(QTableWidget, 'txt_customers_update_address')
-        self.txt_customers_update_customer_id = self.findChild(QTableWidget, 'txt_customers_update_customer_id')
-        self.txt_customers_update_email = self.findChild(QTableWidget, 'txt_customers_update_email')
-        self.txt_customers_update_first_name = self.findChild(QTableWidget, 'txt_customers_update_first_name')
-        self.txt_customers_update_last_name = self.findChild(QTableWidget, 'txt_customers_update_last_name')
-        self.txt_customers_update_phone_num = self.findChild(QTableWidget, 'txt_customers_update_phone_num')
+        self.txt_customers_new_first_name = self.findChild(QLineEdit, 'txt_customers_new_first_name')
+        self.txt_customers_new_last_name = self.findChild(QLineEdit, 'txt_customers_new_last_name')
+        self.txt_customers_new_phone = self.findChild(QLineEdit, 'txt_customers_new_phone')
+        self.txt_customers_new_address = self.findChild(QLineEdit, 'txt_customers_new_address')
+        self.txt_customers_new_email = self.findChild(QLineEdit, 'txt_customers_new_email')
+        self.txt_customers_update_address = self.findChild(QLineEdit, 'txt_customers_update_address')
+        self.txt_customers_update_customer_id = self.findChild(QLineEdit, 'txt_customers_update_customer_id')
+        self.txt_customers_update_email = self.findChild(QLineEdit, 'txt_customers_update_email')
+        self.txt_customers_update_first_name = self.findChild(QLineEdit, 'txt_customers_update_first_name')
+        self.txt_customers_update_last_name = self.findChild(QLineEdit, 'txt_customers_update_last_name')
+        self.txt_customers_update_phone_num = self.findChild(QLineEdit, 'txt_customers_update_phone_num')
 
         self.btn_customers_add_customer = self.findChild(QPushButton, 'btn_customers_add_customer')
         self.btn_customers_add_customer.clicked.connect(self.btn_customers_add_customer_clicked_handler)
@@ -230,35 +236,106 @@ class MainWindow(QMainWindow):
         method called when the btn_customers_add_customer is clicked. 
         grabs the info from the QLineEdit items and adds the customer to the database.
         """
-        print('customer added')
+        first_name = self.txt_customers_new_first_name.text()
+        last_name = self.txt_customers_new_last_name.text()
+        phone_num = self.txt_customers_new_phone.text()
+        address = self.txt_customers_new_address.text()
+        email = self.txt_customers_new_email.text()
+        result = add_customer(first_name, last_name, phone_num, email, address)
+        if result == 1:
+            self.lbl_customers_new_results.setText('Customer added')
+        self.txt_customers_new_address.clear()
+        self.txt_customers_new_email.clear()
+        self.txt_customers_new_first_name.clear()
+        self.txt_customers_new_last_name.clear()
+        self.txt_customers_new_phone.clear()
+        self.populate_update_customers_cmb_box()
+        self.populate_customer_table()
+        self.populate_active_customers_table()
+
 
     def btn_customers_delete_customer_clicked_handler(self):
         """
         method called when the btn_customers_delete_customer is clicked.
         using the customer id store in the QLineEdit will delete the customer from the database.
         """
-        print('customer deleted')
+        customer_id = int(self.txt_customers_update_customer_id.text())
+        result = delete_customer_by_id(customer_id)
+        if result == 1:
+            self.lbl_customers_update_results.setText('Customer Deleted')
+        self.txt_customers_update_address.clear()
+        self.txt_customers_update_customer_id.clear()
+        self.txt_customers_update_email.clear()
+        self.txt_customers_update_first_name.clear()
+        self.txt_customers_update_last_name.clear()
+        self.txt_customers_update_phone_num.clear()
+        self.populate_update_customers_cmb_box()
+        self.populate_customer_table()
+        self.populate_active_customers_table()
 
     def btn_customers_update_customer_clicked_handler(self):
         """
         method called when the btn_customers_update_customer is clicked.
         using the customer id and the info from the QLineEdits will update the customers information in the database.
         """
-        print('customer updated')
+        try:
+            customer_id = int(self.txt_customers_update_customer_id.text())
+            address = self.txt_customers_update_address.text()
+            email = self.txt_customers_update_email.text()
+            first_name = self.txt_customers_update_first_name.text()
+            last_name = self.txt_customers_update_last_name.text()
+            phone_num = self.txt_customers_update_phone_num.text()
+            result = update_customer_by_id(customer_id, first_name, last_name, phone_num, email, address)
+            if result == 1:
+                self.lbl_customers_update_results.setText('Customer information updated')
+            self.txt_customers_update_address.clear()
+            self.txt_customers_update_customer_id.clear()
+            self.txt_customers_update_email.clear()
+            self.txt_customers_update_first_name.clear()
+            self.txt_customers_update_last_name.clear()
+            self.txt_customers_update_phone_num.clear()
+            self.populate_update_customers_cmb_box()
+            self.populate_customer_table()
+            self.populate_active_customers_table()
+        except Exception as e:
+            print(e)
+
 
     def cmb_customers_update_customer_change_handler(self):
         """
         method called when the cmb_customers_update_customer combo box's inde is changed.
         grabs the info on the new customer from the database stores in temporary variables using the QLineEdit items.
         """
-        print('customer changed')
+        if self.cmb_customers_update_customer.currentData() in ['select', None]:
+            pass
+        else:
+            try:
+                customer_id = self.cmb_customers_update_customer.currentData()
+                print(customer_id)
+                info = get_customer_information_by_id(customer_id)
+                self.txt_customers_update_address.setText(info['address'])
+                self.txt_customers_update_customer_id.setText(str(info['customer_id']))
+                self.txt_customers_update_email.setText(info['email'])
+                self.txt_customers_update_first_name.setText(info['first_name'])
+                self.txt_customers_update_last_name.setText(info['last_name'])
+                self.txt_customers_update_phone_num.setText(info['phone_number'])
+            except Exception as e:
+                self.lbl_customers_update_results.setText(e)
+
+    def populate_update_customers_cmb_box(self):
+        self.cmb_customers_update_customer.clear()
+        rows = get_customer_names_ids()[1]
+        self.cmb_customers_update_customer.addItem('-select-', userData='select')
+        for customer in rows:
+            self.cmb_customers_update_customer.addItem(customer[1], userData=customer[0])
 
     def populate_customer_table(self):
         """
         method called to populate/refresh the customer table on the customers tab.
         """
         rows = get_all_customer_information()[1]
-        self.populate_table(self.tbl_customers, rows, ['ID', 'First Name', 'Last Name', 'Phone Num', 'Email', 'Address'])
+        self.populate_table(self.tbl_customers, rows,
+                            ['ID', 'First Name', 'Last Name', 'Phone Num', 'Email', 'Address'])
 
     def populate_active_customers_table(self):
         """
@@ -333,7 +410,6 @@ class MainWindow(QMainWindow):
             self.tbl_invoices_items_purchased.clear()
             self.populate_invoices_table()
 
-
     def populate_invoices_table(self):
         """
         method called to populate the invoices table on the invoices tab
@@ -347,7 +423,8 @@ class MainWindow(QMainWindow):
         """
         invoice_id = int(self.txt_invoices_invoice_num.text())
         rows = get_invoice_items_by_invoice_id(invoice_id)[1]
-        self.populate_table(self.tbl_invoices_items_purchased, rows, ['Product ID', 'Product', 'Unit Price', 'Purchased'])
+        self.populate_table(self.tbl_invoices_items_purchased, rows,
+                            ['Product ID', 'Product', 'Unit Price', 'Purchased'])
 
     """
     VVVV MORE GENERIC USEFUL METHODS VVVV
@@ -383,12 +460,12 @@ class MainWindow(QMainWindow):
         self.populate_inventory_table_in_stock()
         self.populate_invoices_table()
 
-    def refresh_all_combo_boxes(self):
+    def populate_all_combo_boxes(self):
         """
         method for refreshing all combo boxes in the gui. use when app is first loaded or when an update is performed
         on data being used in the combo box.
         """
-        pass
+        self.populate_update_customers_cmb_box()
 
 
 if __name__ == '__main__':
