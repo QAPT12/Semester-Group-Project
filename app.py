@@ -117,13 +117,13 @@ class MainWindow(QMainWindow):
         self.txt_inventory_update_amount = self.findChild(QLineEdit, 'txt_inventory_update_amount')
         self.txt_inventory_update_description = self.findChild(QLineEdit, 'txt_inventory_update_description')
         self.txt_inventory_update_price = self.findChild(QLineEdit, 'txt_inventory_update_price')
-        self.txt_inventory_product_id = self.findChild(QLineEdit, 'txt_inventory_product_id')
+        self.txt_inventory_update_product_id = self.findChild(QLineEdit, 'txt_inventory_update_product_id')
         self.txt_inventory_update_product_name = self.findChild(QLineEdit, 'txt_inventory_update_product_name')
+        self.txt_inventory_update_vendor = self.findChild(QLineEdit, 'txt_inventory_update_vendor')
 
         self.cmb_inventory_update_product = self.findChild(QComboBox, 'cmb_inventory_update_product')
         self.cmb_inventory_update_product.currentIndexChanged.connect(self.cmb_inventory_update_product_change_handler)
 
-        self.cmb_inventory_update_vendor = self.findChild(QComboBox, 'cmb_inventory_update_vendor')
         self.cmb_inventory_add_vendor = self.findChild(QComboBox, 'cmb_inventory_add_vendor')
 
         self.btn_inventory_add_item = self.findChild(QPushButton, 'btn_inventory_add_item')
@@ -132,8 +132,6 @@ class MainWindow(QMainWindow):
         self.btn_inventory_update_product = self.findChild(QPushButton, 'btn_inventory_update_product')
         self.btn_inventory_update_product.clicked.connect(self.btn_inventory_update_product_clicked_handler)
 
-        self.btn_inventory_delete_product = self.findChild(QPushButton, 'btn_inventory_delete_product')
-        self.btn_inventory_delete_product.clicked.connect(self.btn_inventory_delete_product_clicked_handler)
 
     def rdo_inventory_out_of_stock_change_handler(self):
         """
@@ -153,14 +151,43 @@ class MainWindow(QMainWindow):
         will store the data of the product being updated in the inventory in temp variables using the QLineEdit items
         and vendor combo box allowing the user to make changes.
         """
-        print('product changed')
+        if self.cmb_inventory_update_product.currentData() in ['select', None]:
+            pass
+        else:
+            try:
+                product_id = self.cmb_inventory_update_product.currentData()
+                info = get_product_information_by_id(product_id)
+                self.txt_inventory_update_amount.setText(str(info['in_stock']))
+                self.txt_inventory_update_description.setText(info['product_description'])
+                self.txt_inventory_update_price.setText(str(info['product_price']))
+                self.txt_inventory_update_product_id.setText(str(info['product_id']))
+                self.txt_inventory_update_product_name.setText(info['product_name'])
+                self.txt_inventory_update_vendor.setText(info['vendor'])
+            except Exception as e:
+                self.lbl_inventory_update_results.setText(e)
 
     def btn_inventory_add_item_click_handler(self):
         """
         method called when the btn_inventory_add_item is clicked.
         takes the information from the QLineItems and vendor combo box and adds them to the inventory.
         """
-        print('item added to inventory')
+        try:
+            product_name = self.txt_inventory_add_product_name.text()
+            product_description = self.txt_inventory_add_description.text()
+            price = float(self.txt_inventory_add_price.text())
+            stock = int(self.txt_inventory_add_amount.text())
+            vendor = self.cmb_inventory_add_vendor.currentData()
+            result = add_product_to_inventory(vendor, product_name, product_description, price, stock)
+            if result == 1:
+                self.lbl_inventory_add_results.setText('Item added successfully')
+                self.txt_inventory_add_price.clear()
+                self.txt_inventory_add_description.clear()
+                self.txt_inventory_add_amount.clear()
+                self.txt_inventory_add_product_name.clear()
+                self.populate_inventory_table_in_stock()
+                self.populate_inventory_product_combo_box()
+        except Exception as e:
+            self.lbl_inventory_add_results.setText(str(e))
 
     def btn_inventory_update_product_clicked_handler(self):
         """
@@ -168,14 +195,22 @@ class MainWindow(QMainWindow):
         takes the information from the QLineEdits and vendor combo box and updates the products information in the database
         using the products ID code.
         """
-        print('item updated in inventory')
-
-    def btn_inventory_delete_product_clicked_handler(self):
-        """
-        method called then the btn_inventory_delete_product is clicked.
-        using the temp data and product id from the cmb_inventory_product_update combo box
-        """
-        print('item deleted from inventory')
+        if self.cmb_inventory_update_product.currentData() in ['select', None]:
+            self.lbl_customers_update_results.setText('Must have a product selected to perform an update.')
+        else:
+            try:
+                product_id = int(self.cmb_inventory_update_product.currentData())
+                amount = int(self.txt_inventory_update_amount.text())
+                description = self.txt_inventory_update_description.text()
+                price = float(self.txt_inventory_update_price.text())
+                name = self.txt_inventory_update_product_name.text()
+                result = update_product_info_using_product_id(product_id, name, description, price, amount)
+                if result == 1:
+                    self.lbl_inventory_update_results.setText('Product updated')
+                    self.populate_inventory_product_combo_box()
+                    self.populate_inventory_table_in_stock()
+            except Exception as e:
+                self.lbl_inventory_update_results.setText(str(e))
 
     def populate_inventory_table_in_stock(self):
         """
@@ -192,6 +227,27 @@ class MainWindow(QMainWindow):
         rows = get_all_inventory_information_out_stock()[1]
         self.populate_table(self.tbl_inventory, rows,
                             ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
+
+    def populate_inventory_vendor_combo_boxes(self):
+        """
+        method for populating/refreshing the vendors combo boxes on the inventory tab.
+        """
+        self.cmb_inventory_add_vendor.clear()
+        rows = get_vendor_names_ids()[1]
+        self.cmb_inventory_add_vendor.addItem('-select-', userData='select')
+        for vendor in rows:
+            self.cmb_inventory_add_vendor.addItem(vendor[1], userData=vendor[0])
+
+
+    def populate_inventory_product_combo_box(self):
+        """
+        method for populating and refreshing the inventory_product_combo_box
+        """
+        self.cmb_inventory_update_product.clear()
+        rows = get_product_names_and_ids()[1]
+        self.cmb_inventory_update_product.addItem('-select-', userData='select')
+        for product in rows:
+            self.cmb_inventory_update_product.addItem(product[1], userData=product[0])
 
     """
     VVVV METHODS FOR THE CUSTOMERS TAB VVVV
@@ -308,14 +364,14 @@ class MainWindow(QMainWindow):
                 result = update_customer_by_id(customer_id, first_name, last_name, phone_num, email, address)
                 if result == 1:
                     self.lbl_customers_update_results.setText('Customer information updated')
-                self.txt_customers_update_address.clear()
-                self.txt_customers_update_customer_id.clear()
-                self.txt_customers_update_email.clear()
-                self.txt_customers_update_first_name.clear()
-                self.txt_customers_update_last_name.clear()
-                self.txt_customers_update_phone_num.clear()
-                self.populate_update_customers_cmb_box()
-                self.populate_all_tables()
+                    self.txt_customers_update_address.clear()
+                    self.txt_customers_update_customer_id.clear()
+                    self.txt_customers_update_email.clear()
+                    self.txt_customers_update_first_name.clear()
+                    self.txt_customers_update_last_name.clear()
+                    self.txt_customers_update_phone_num.clear()
+                    self.populate_update_customers_cmb_box()
+                    self.populate_all_tables()
             except Exception as e:
                 self.lbl_customers_update_results.setTest(str(e))
 
@@ -329,7 +385,6 @@ class MainWindow(QMainWindow):
         else:
             try:
                 customer_id = self.cmb_customers_update_customer.currentData()
-                print(customer_id)
                 info = get_customer_information_by_id(customer_id)
                 self.txt_customers_update_address.setText(info['address'])
                 self.txt_customers_update_customer_id.setText(str(info['customer_id']))
@@ -341,6 +396,9 @@ class MainWindow(QMainWindow):
                 self.lbl_customers_update_results.setText(e)
 
     def populate_update_customers_cmb_box(self):
+        """
+        method for populating/refreshing the update_customer_cmb_box
+        """
         self.cmb_customers_update_customer.clear()
         rows = get_customer_names_ids()[1]
         self.cmb_customers_update_customer.addItem('-select-', userData='select')
@@ -427,7 +485,6 @@ class MainWindow(QMainWindow):
             msg.setStandardButtons(QMessageBox.StandardButton.Ok)
             msg.exec()
 
-
     def btn_invoices_delete_invoice_clicked_handler(self):
         """
         method called when the btn_invoices_delete_invoice is clicked.
@@ -472,7 +529,6 @@ class MainWindow(QMainWindow):
             msg.setIcon(QMessageBox.Icon.Information)
             msg.setStandardButtons(QMessageBox.StandardButton.Ok)
             msg.exec()
-
 
     def populate_invoices_table(self):
         """
@@ -530,6 +586,8 @@ class MainWindow(QMainWindow):
         on data being used in the combo box.
         """
         self.populate_update_customers_cmb_box()
+        self.populate_inventory_vendor_combo_boxes()
+        self.populate_inventory_product_combo_box()
 
 
 if __name__ == '__main__':

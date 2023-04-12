@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>917</width>
+    <width>908</width>
     <height>684</height>
    </rect>
   </property>
@@ -328,7 +328,7 @@
          <rect>
           <x>10</x>
           <y>40</y>
-          <width>381</width>
+          <width>361</width>
           <height>191</height>
          </rect>
         </property>
@@ -612,7 +612,7 @@
            </property>
           </spacer>
          </item>
-         <item row="9" column="0">
+         <item row="10" column="0">
           <widget class="QLabel" name="label_40">
            <property name="text">
             <string>Vendor:</string>
@@ -620,7 +620,24 @@
           </widget>
          </item>
          <item row="9" column="1">
-          <widget class="QComboBox" name="cmb_inventory_update_vendor"/>
+          <spacer name="verticalSpacer_20">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="10" column="1">
+          <widget class="QLineEdit" name="txt_inventory_update_vendor">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -629,25 +646,12 @@
          <rect>
           <x>20</x>
           <y>340</y>
-          <width>171</width>
+          <width>181</width>
           <height>51</height>
          </rect>
         </property>
         <property name="text">
          <string>Update Product</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="btn_inventory_delete_product">
-        <property name="geometry">
-         <rect>
-          <x>210</x>
-          <y>340</y>
-          <width>171</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Delete Product</string>
         </property>
        </widget>
        <widget class="QLabel" name="lbl_inventory_update_results">
