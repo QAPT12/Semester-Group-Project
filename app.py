@@ -12,13 +12,16 @@ class MainWindow(QMainWindow):
         self.initialize_pos_tab()
 
         self.initialize_inventory_tab()
-        
+
         self.initialize_customers_tab()
 
         self.initialize_invoices_tab()
 
         self.populate_all_tables()
 
+    """
+    VVVV METHODS FOR THE POS TAB VVVV
+    """
     def initialize_pos_tab(self):
         """
         initializes the tables and widgets located on the POS tab of the GUI
@@ -48,7 +51,6 @@ class MainWindow(QMainWindow):
         self.txt_pos_customer_phone = self.findChild(QLineEdit, 'txt_pos_customer_phone')
         self.txt_pos_customer_email = self.findChild(QLineEdit, 'txt_pos_customer_email')
         self.txt_customer_address = self.findChild(QLineEdit, 'txt_customer_address')
-
 
     def btn_pos_checkout_click_handler(self):
         """
@@ -89,6 +91,9 @@ class MainWindow(QMainWindow):
         """
         print('customer change')
 
+    """
+    VVVV METHODS FOR THE INVENTORY TAB VVVV
+    """
     def initialize_inventory_tab(self):
         """
         initializes all the tabs and widgets on the inventory page.
@@ -116,7 +121,7 @@ class MainWindow(QMainWindow):
 
         self.cmb_inventory_update_vendor = self.findChild(QComboBox, 'cmb_inventory_update_vendor')
         self.cmb_inventory_add_vendor = self.findChild(QComboBox, 'cmb_inventory_add_vendor')
-        
+
         self.btn_inventory_add_item = self.findChild(QPushButton, 'btn_inventory_add_item')
         self.btn_inventory_add_item.clicked.connect(self.btn_inventory_add_item_click_handler)
 
@@ -130,13 +135,13 @@ class MainWindow(QMainWindow):
         """
         method called when the radio button is triggered.
         if the button is checked the tbl_inventory contents will be swapped to show items which have a stock level of 0.
-        if the button i unchecked the tbl_inventory will display all invneotry items as normal.
+        if the button is unchecked the tbl_inventory will display all inventory items as normal.
         """
         status = self.sender()
         if status.isChecked():
-            print('out of stock button checked')
+            self.populate_inventory_table_out_of_stock()
         else:
-            print('out of stock button unchecked')
+            self.populate_inventory_table_in_stock()
 
     def cmb_inventory_update_product_change_handler(self):
         """
@@ -168,6 +173,17 @@ class MainWindow(QMainWindow):
         """
         print('item deleted from inventory')
 
+    def populate_inventory_table_in_stock(self):
+        rows = get_all_inventory_information_in_stock()[1]
+        self.populate_table(self.tbl_inventory, rows, ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
+
+    def populate_inventory_table_out_of_stock(self):
+        rows = get_all_inventory_information_out_stock()[1]
+        self.populate_table(self.tbl_inventory, rows, ['Product ID', 'Vendor ID', 'Name', 'Description', 'Price', 'Stock'])
+
+    """
+    VVVV METHODS FOR THE CUSTOMERS TAB VVVV
+    """
     def initialize_customers_tab(self):
         """
         initializes all the tables and widgets on the customers tab
@@ -201,7 +217,7 @@ class MainWindow(QMainWindow):
 
         self.cmb_customers_update_customer = self.findChild(QComboBox, 'cmb_customers_update_customer')
         self.cmb_customers_update_customer.currentIndexChanged.connect(self.cmb_customers_update_customer_change_handler)
-        
+
     def btn_customers_add_customer_clicked_handler(self):
         """
         method called when the btn_customers_add_customer is clicked. 
@@ -234,27 +250,24 @@ class MainWindow(QMainWindow):
         """
         method called to populate/refresh the customer table on the customers tab.
         """
-        self.tbl_customers.setColumnCount(6)
-        self.tbl_customers.verticalHeader().setVisible(False)
-        self.tbl_customers.setHorizontalHeaderLabels(['ID', 'First Name', 'Last Name', 'Phone Num.', 'Email', 'Address'])
-        customers_info = get_all_customer_information()[1]
-        self.tbl_customers.setRowCount(len(customers_info))
-        for i in range(len(customers_info)):
-            row = customers_info[i]
-            for j in range(len(row)):
-                self.tbl_customers.setItem(i, j, QTableWidgetItem(str(row[j])))
-        self.tbl_customers.resizeColumnsToContents()
-        self.tbl_customers.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
+        rows = get_all_customer_information()[1]
+        self.populate_table(self.tbl_customers, rows, ['ID', 'First Name', 'Last Name', 'Phone Num', 'Email', 'Address'])
 
     def populate_active_customers_table(self):
         """
-        method called to populate.refresh the active customer table on the customers tab.
+        method called to populate/refresh the active customer table on the customers tab.
         """
-        self.tbl_active_customers.setColumnCount(4)
+        rows = get_active_customers()[1]
+        self.populate_table(self.tbl_active_customers, rows,
+                            ['ID', 'First Name', 'Last Name', 'Phone Num', 'Email', 'Address'])
+
+    """
+    VVVV METHODS FOR THE INVOICES TAB VVVV
+    """
 
     def initialize_invoices_tab(self):
         """
-        initrializes all the tables and widgets on the invoices tab.
+        initializes all the tables and widgets on the invoices tab.
         """
         self.tbl_invoices = self.findChild(QTableWidget, 'tbl_invoices')
         self.tbl_invoices_items_purchased = self.findChild(QTableWidget, 'tbl_invoices_items_purchased')
@@ -278,16 +291,72 @@ class MainWindow(QMainWindow):
         method called when the btn_invoices_view_details is clicked.
         uses the invoice id from the txt_invoices_invoice_num to display the details of the invoice 
         in the QLineEdit items on the invoice page and gets the information
-        of the items belonging to the invoice and disaplys in the tbl_invoices_items_purchased.
+        of the items belonging to the invoice and displays in the tbl_invoices_items_purchased.
         """
-        print('invoice details')
+        invoice_id = int(self.txt_invoices_invoice_num.text())
+        invoice_info = get_invoice_information_by_id(invoice_id)
+        self.txt_invoices_address.setText(invoice_info['address'])
+        self.txt_invoices_customer_id.setText(str(invoice_info['customer_id']))
+        self.txt_invoices_customer_name.setText(invoice_info['name'])
+        self.txt_invoices_email.setText(invoice_info['email'])
+        self.txt_invoices_phone_num.setText(invoice_info['phone_number'])
+        self.txt_invoices_date.setText(invoice_info['date'])
+        self.populate_invoices_items_table()
 
     def btn_invoices_delete_invoice_clicked_handler(self):
         """
         method called when the btn_invoices_delete_invoice is clicked.
         uses the invoice number from the txt_invoices_invoice_num to delete the invoice from database.
         """
-        print('invoice deleted')
+        invoice_id = int(self.txt_invoices_invoice_num.text())
+        delete_invoice_by_id(invoice_id)
+        self.txt_invoices_address.clear()
+        self.txt_invoices_customer_id.clear()
+        self.txt_invoices_customer_name.clear()
+        self.txt_invoices_email.clear()
+        self.txt_invoices_phone_num.clear()
+        self.txt_invoices_date.clear()
+        self.tbl_invoices_items_purchased.clear()
+        self.populate_invoices_table()
+
+    def populate_invoices_table(self):
+        """
+        method called to populate the invoices table on the invoices tab
+        """
+        rows = get_all_invoice_information()[1]
+        self.populate_table(self.tbl_invoices, rows, ['Invoice Number', 'Customer ID', 'Customer', 'Date', 'Total'])
+
+    def populate_invoices_items_table(self):
+        """
+        method called when you want to view the items belonging to an invoice
+        """
+        invoice_id = int(self.txt_invoices_invoice_num.text())
+        rows = get_invoice_items_by_invoice_id(invoice_id)[1]
+        self.populate_table(self.tbl_invoices_items_purchased, rows, ['Product ID', 'Product', 'Unit Price', 'Purchased'])
+
+    """
+    VVVV MORE GENERIC USEFUL METHODS VVVV
+    """
+
+    def populate_table(self, table, rows, columns):
+        """
+        Refreshes a table with new data.
+        :PARAM:
+            table: QTableWidget: The QTableWidget object to refresh.
+            rows: list: A list of lists, where each sub-list contains the data for a row in the table.
+            columns: list: A list of strings, where each string represents the name of a column in the table.
+        """
+        table.setRowCount(len(rows))
+        table.setColumnCount(len(columns))
+        for i in range(len(rows)):
+            row = rows[i]
+            for j in range(len(row)):
+                table.setItem(i, j, QTableWidgetItem(str(row[j])))
+        for i in range(table.columnCount()):
+            table.setHorizontalHeaderItem(i, QTableWidgetItem(f'{columns[i]}'))
+        table.verticalHeader().setVisible(False)
+        table.resizeColumnsToContents()
+        table.horizontalHeader().setSectionResizeMode(len(columns) - 1, QHeaderView.ResizeMode.Stretch)
 
     def populate_all_tables(self):
         """
@@ -295,7 +364,9 @@ class MainWindow(QMainWindow):
         large changes are made that affect all tables.
         """
         self.populate_customer_table()
-
+        self.populate_active_customers_table()
+        self.populate_inventory_table_in_stock()
+        self.populate_invoices_table()
 
 
 if __name__ == '__main__':

@@ -33,12 +33,12 @@ def execute_query_commit(query, host='localhost', username=USER, password=PASS, 
     generic sql function to make a change to the DB(UPDATE, DELETE, INSERT, etc.)
 
     :PARAM: 
-        query: SQL query to be exectued
+        query: SQL query to be executed
         host: host of the server, localhost by default
         username: user being used to access the DB, default is set in the USER variable 
-        password: pass for the user being used to access the DB, defualt is set in the PASS variable
+        password: pass for the user being used to access the DB, default is set in the PASS variable
         port: port to access the DB through, default is 3306
-        database: the name pf the database being connected to, in our acse default is the_athletic_outlet
+        database: the name of the database being connected to, in our case default is the_athletic_outlet
 
     :RETURNS:
         returns the number of rows affected by the query
