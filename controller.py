@@ -232,6 +232,11 @@ def get_invoice_items_by_invoice_id(invoice_id):
     return execute_query_return_results(sql)
 
 
+def get_max_invoice_id():
+    sql = 'SELECT max(invoice_id) from invoices;'
+    return execute_query_return_results(sql)[1][0]
+
+
 def get_invoice_information_by_id(invoice_id):
     """
     function for getting the information on an invoice from the invoice id.

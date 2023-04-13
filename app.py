@@ -2,6 +2,7 @@ from PyQt6 import uic
 from PyQt6.QtWidgets import *
 import sys
 from controller import *
+from datetime import date
 
 
 class MainWindow(QMainWindow):
@@ -53,7 +54,7 @@ class MainWindow(QMainWindow):
 
         self.txt_pos_customer_phone = self.findChild(QLineEdit, 'txt_pos_customer_phone')
         self.txt_pos_customer_email = self.findChild(QLineEdit, 'txt_pos_customer_email')
-        self.txt_customer_address = self.findChild(QLineEdit, 'txt_pos_customer_address')
+        self.txt_pos_customer_address = self.findChild(QLineEdit, 'txt_pos_customer_address')
 
     def btn_pos_checkout_click_handler(self):
         """
@@ -61,7 +62,38 @@ class MainWindow(QMainWindow):
         creates an invoice to add into the database containing all the customers information and information
         related to the invoice like time of purchase and items purchased.
         """
-        print('checkout')
+        if self.cmb_pos_customer.currentData() in ['select', None]:
+            self.lbl_pos_results.setText('Must select a customer to checkout')
+        elif len(self.pos_customer_items) == 0:
+            self.lbl_pos_results.setText('Cannot checkout an empty invoice')
+        else:
+            try:
+                invoice_total = float(self.lbl_pos_total_price.text().strip("$"))
+                customer_id = int(self.cmb_pos_customer.currentData())
+                invoice_id = get_max_invoice_id()[0] + 1
+                today = date.today()
+                sql = f"INSERT INTO `the_athletic_outlet`.`invoices` " \
+                      f"(`invoice_id`, `customer_id`, `order_date`, `invoice_total`) " \
+                      f"VALUES ('{invoice_id}', '{customer_id}', '{today}', '{invoice_total}');"
+                result = execute_query_commit(sql)
+                if result == 1:
+                    self.lbl_pos_results.setText('Checkout Complete invoice created')
+                    for key, value in self.pos_customer_items.items():
+                        sql = f"INSERT INTO invoice_line_items VALUES(default, {invoice_id}, {key}, {value['quantity']})"
+                        execute_query_commit(sql)
+                        stock = get_product_information_by_id(key)['in_stock'] - value['quantity']
+                        sql2 = f"UPDATE products SET in_stock = {stock} WHERE product_id = {key};"
+                        execute_query_commit(sql2)
+                    self.populate_all_tables()
+                    self.tbl_pos_invoice.clear()
+                    self.txt_pos_customer_email.clear()
+                    self.txt_pos_customer_phone.clear()
+                    self.txt_pos_customer_address.clear()
+                    self.lbl_pos_total_price.clear()
+                    self.populate_pos_products_combo_box()
+                    self.populate_pos_customers_combo_box()
+            except Exception as e:
+                self.lbl_pos_results.setText(str(e))
 
     def btn_pos_add_item_click_handler(self):
         """
@@ -74,11 +106,15 @@ class MainWindow(QMainWindow):
             try:
                 product_id = self.cmb_pos_items.currentData()
                 info = get_product_information_by_id(product_id)
-                self.pos_customer_items[product_id] = {'name': info['product_name'], 'vendor': info['vendor'],
-                                                       'unit price': info['product_price'],
-                                                       'quantity': self.spb_pos_item_amount}
+                if product_id in self.pos_customer_items.keys():
+                    self.pos_customer_items[product_id]['quantity'] += int(self.spb_pos_item_amount.text())
+                else:
+                    self.pos_customer_items[product_id] = {'name': info['product_name'], 'vendor': info['vendor'],
+                                                           'unit price': info['product_price'],
+                                                           'quantity': int(self.spb_pos_item_amount.text())}
                 self.populate_pos_invoice()
                 self.lbl_pos_results.setText('Item added')
+                self.populate_pos_products_combo_box()
             except Exception as e:
                 self.lbl_pos_results.setText(str(e))
 
@@ -88,14 +124,49 @@ class MainWindow(QMainWindow):
         grabs info from the cmb_pos_items box and the quantity from spb_pos_item_amount then subtracts that amount
         of product from the invoice if possible.
         """
-        print('remove item')
+        if self.cmb_pos_items.currentData() in ['select', None]:
+            self.lbl_pos_results.setText('Must select an item to remove from inventory')
+        else:
+            try:
+                product_id = self.cmb_pos_items.currentData()
+                if product_id in self.pos_customer_items.keys():
+                    self.pos_customer_items[product_id]['quantity'] -= int(self.spb_pos_item_amount.text())
+                    if self.pos_customer_items[product_id]['quantity'] <= 0:
+                        del self.pos_customer_items[product_id]
+                    self.lbl_pos_results.setText('Item removed')
+                else:
+                    self.lbl_pos_results.setText('Item being removed is not part of the invoice')
+                self.populate_pos_invoice()
+                self.populate_pos_products_combo_box()
+            except Exception as e:
+                self.lbl_pos_results.setText(str(e))
 
     def populate_pos_invoice(self):
         """
         for each item in pos_customers_items add its details to a new line
         set lbl_pos_total to the calculated price of all the items
         """
-        pass
+        try:
+            self.tbl_pos_invoice.setColumnCount(5)
+            self.tbl_pos_invoice.setRowCount(len(self.pos_customer_items))
+            self.tbl_pos_invoice.verticalHeader().setVisible(False)
+            columns = ['product ID', 'product name', 'vendor', 'unit price', 'quantity']
+            self.tbl_pos_invoice.setHorizontalHeaderLabels(columns)
+            current_row = 0
+            current_price = 0
+            for key, value in self.pos_customer_items.items():
+                self.tbl_pos_invoice.setItem(current_row, 0, QTableWidgetItem(str(key)))
+                self.tbl_pos_invoice.setItem(current_row, 1, QTableWidgetItem(value['name']))
+                self.tbl_pos_invoice.setItem(current_row, 2, QTableWidgetItem(value['vendor']))
+                self.tbl_pos_invoice.setItem(current_row, 3, QTableWidgetItem(str(value['unit price'])))
+                self.tbl_pos_invoice.setItem(current_row, 4, QTableWidgetItem(str(value['quantity'])))
+                current_price += (value['quantity'] * value['unit price'])
+                current_row += 1
+            self.tbl_pos_invoice.resizeColumnsToContents()
+            self.tbl_pos_invoice.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+            self.lbl_pos_total_price.setText(f"${str(current_price)}")
+        except Exception as e:
+            self.lbl_pos_results.setText(str(e))
 
     def populate_pos_products_combo_box(self):
         self.cmb_pos_items.clear()
@@ -116,7 +187,7 @@ class MainWindow(QMainWindow):
             try:
                 customer_id = self.cmb_pos_customer.currentData()
                 info = get_customer_information_by_id(customer_id)
-                self.txt_customer_address.setText(info['address'])
+                self.txt_pos_customer_address.setText(info['address'])
                 self.txt_pos_customer_email.setText(info['email'])
                 self.txt_pos_customer_phone.setText(info['phone_number'])
             except Exception as e:
