@@ -31,12 +31,12 @@ CREATE TABLE invoices (
   invoice_id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
   order_date DATE NOT NULL,
-  invoice_total INT NOT NULL,
+  invoice_total DECIMAL(8, 2) NOT NULL,
   FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
 );
 
 CREATE TABLE invoice_line_items (
-	item_id INT PRIMARY KEY,
+	item_id INT PRIMARY KEY auto_increment,
 	invoice_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL,
