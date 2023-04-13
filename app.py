@@ -8,6 +8,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         uic.loadUi('GUI.ui', self)
+        self.pos_customer_items = {}
 
         self.initialize_pos_tab()
 
@@ -44,7 +45,6 @@ class MainWindow(QMainWindow):
         self.btn_pos_remove_item.clicked.connect(self.btn_pos_remove_item_click_handler)
 
         self.cmb_pos_items = self.findChild(QComboBox, 'cmb_pos_items')
-        self.cmb_pos_items.currentIndexChanged.connect(self.cmb_pos_items_change_handler)
 
         self.cmb_pos_customer = self.findChild(QComboBox, 'cmb_pos_customer')
         self.cmb_pos_customer.currentIndexChanged.connect(self.cmb_pos_customer_change_handler)
@@ -53,7 +53,7 @@ class MainWindow(QMainWindow):
 
         self.txt_pos_customer_phone = self.findChild(QLineEdit, 'txt_pos_customer_phone')
         self.txt_pos_customer_email = self.findChild(QLineEdit, 'txt_pos_customer_email')
-        self.txt_customer_address = self.findChild(QLineEdit, 'txt_customer_address')
+        self.txt_customer_address = self.findChild(QLineEdit, 'txt_pos_customer_address')
 
     def btn_pos_checkout_click_handler(self):
         """
@@ -68,7 +68,19 @@ class MainWindow(QMainWindow):
         method for adding an item to the invoice.
         grabs info from the cmb_pos_items box and quantity from spb_pos_item_amount and then adds to the invoice.
         """
-        print('add item')
+        if self.cmb_pos_items.currentData() in ['select', None]:
+            self.lbl_pos_results.setText('Must select an item to add to inventory')
+        else:
+            try:
+                product_id = self.cmb_pos_items.currentData()
+                info = get_product_information_by_id(product_id)
+                self.pos_customer_items[product_id] = {'name': info['product_name'], 'vendor': info['vendor'],
+                                                       'unit price': info['product_price'],
+                                                       'quantity': self.spb_pos_item_amount}
+                self.populate_pos_invoice()
+                self.lbl_pos_results.setText('Item added')
+            except Exception as e:
+                self.lbl_pos_results.setText(str(e))
 
     def btn_pos_remove_item_click_handler(self):
         """
@@ -78,13 +90,19 @@ class MainWindow(QMainWindow):
         """
         print('remove item')
 
-    def cmb_pos_items_change_handler(self):
+    def populate_pos_invoice(self):
         """
-        method called when the index of the cmb_pos_items box changes.
-        will simply grab the information about the item from the database and store it into temp variables which
-        can be used by the prior methods for adding and removing from invoice.
+        for each item in pos_customers_items add its details to a new line
+        set lbl_pos_total to the calculated price of all the items
         """
-        print('item change')
+        pass
+
+    def populate_pos_products_combo_box(self):
+        self.cmb_pos_items.clear()
+        rows = get_product_names_and_ids()[1]
+        self.cmb_pos_items.addItem('-select-', userData='select')
+        for product in rows:
+            self.cmb_pos_items.addItem(product[1], userData=product[0])
 
     def cmb_pos_customer_change_handler(self):
         """
@@ -92,7 +110,24 @@ class MainWindow(QMainWindow):
         grabs information about the customer which will be stored in temp variables to be used when
         the invoice is ready to be completed.
         """
-        print('customer change')
+        if self.cmb_pos_customer.currentData() in ['select', None]:
+            pass
+        else:
+            try:
+                customer_id = self.cmb_pos_customer.currentData()
+                info = get_customer_information_by_id(customer_id)
+                self.txt_customer_address.setText(info['address'])
+                self.txt_pos_customer_email.setText(info['email'])
+                self.txt_pos_customer_phone.setText(info['phone_number'])
+            except Exception as e:
+                self.lbl_pos_results.setText(str(e))
+
+    def populate_pos_customers_combo_box(self):
+        self.cmb_pos_customer.clear()
+        rows = get_customer_names_ids()[1]
+        self.cmb_pos_customer.addItem('-select-', userData='select')
+        for customer in rows:
+            self.cmb_pos_customer.addItem(customer[1], userData=customer[0])
 
     """
     VVVV METHODS FOR THE INVENTORY TAB VVVV
@@ -131,7 +166,6 @@ class MainWindow(QMainWindow):
 
         self.btn_inventory_update_product = self.findChild(QPushButton, 'btn_inventory_update_product')
         self.btn_inventory_update_product.clicked.connect(self.btn_inventory_update_product_clicked_handler)
-
 
     def rdo_inventory_out_of_stock_change_handler(self):
         """
@@ -237,7 +271,6 @@ class MainWindow(QMainWindow):
         self.cmb_inventory_add_vendor.addItem('-select-', userData='select')
         for vendor in rows:
             self.cmb_inventory_add_vendor.addItem(vendor[1], userData=vendor[0])
-
 
     def populate_inventory_product_combo_box(self):
         """
@@ -393,7 +426,7 @@ class MainWindow(QMainWindow):
                 self.txt_customers_update_last_name.setText(info['last_name'])
                 self.txt_customers_update_phone_num.setText(info['phone_number'])
             except Exception as e:
-                self.lbl_customers_update_results.setText(e)
+                self.lbl_customers_update_results.setText(str(e))
 
     def populate_update_customers_cmb_box(self):
         """
@@ -588,6 +621,8 @@ class MainWindow(QMainWindow):
         self.populate_update_customers_cmb_box()
         self.populate_inventory_vendor_combo_boxes()
         self.populate_inventory_product_combo_box()
+        self.populate_pos_products_combo_box()
+        self.populate_pos_customers_combo_box()
 
 
 if __name__ == '__main__':
