@@ -1,10 +1,11 @@
 import mysql.connector
+from information import USER
+from information import PASS
+from information import HOST
+from information import PORT
 
-USER = 'root'
-PASS = 'root'
 
-
-def execute_query_return_results(query, host='localhost', username=USER, password=PASS, port=3306,
+def execute_query_return_results(query, host=HOST, username=USER, password=PASS, port=PORT,
                                  database='the_athletic_outlet'):
     """
     generic sql function for selecting data from a table.
@@ -27,7 +28,7 @@ def execute_query_return_results(query, host='localhost', username=USER, passwor
             return cursor.column_names, cursor.fetchall()
 
 
-def execute_query_commit(query, host='localhost', username=USER, password=PASS, port=3306,
+def execute_query_commit(query, host=HOST, username=USER, password=PASS, port=PORT,
                          database='the_athletic_outlet'):
     """
     generic sql function to make a change to the DB(UPDATE, DELETE, INSERT, etc.)

@@ -6,7 +6,15 @@ from datetime import date
 
 
 class MainWindow(QMainWindow):
+    """
+    Class representing the main window of our application.
+    includes all the methods and to initialize and provide function to all the buttons and tables in the application
+    """
     def __init__(self):
+        """
+        initializes the main window of our application and calls the methods which initializes all the widgets on each
+        tab of the application
+        """
         super().__init__()
         uic.loadUi('GUI.ui', self)
         self.pos_customer_items = {}
@@ -72,28 +80,22 @@ class MainWindow(QMainWindow):
                 customer_id = int(self.cmb_pos_customer.currentData())
                 invoice_id = get_max_invoice_id()[0] + 1
                 today = date.today()
-                sql = f"INSERT INTO `the_athletic_outlet`.`invoices` " \
-                      f"(`invoice_id`, `customer_id`, `order_date`, `invoice_total`) " \
-                      f"VALUES ('{invoice_id}', '{customer_id}', '{today}', '{invoice_total}');"
-                result = execute_query_commit(sql)
+                result = add_invoice(invoice_id, customer_id, today, invoice_total)
                 if result == 1:
                     self.lbl_pos_results.setText('Checkout Complete invoice created')
                     for key, value in self.pos_customer_items.items():
-                        sql = f"INSERT INTO invoice_line_items VALUES(default, {invoice_id}, {key}, {value['quantity']})"
-                        execute_query_commit(sql)
-                        stock = get_product_information_by_id(key)['in_stock'] - value['quantity']
-                        sql2 = f"UPDATE products SET in_stock = {stock} WHERE product_id = {key};"
-                        execute_query_commit(sql2)
+                        add_invoice_line_item(invoice_id, key, value['quantity'])
+                        new_stock = get_product_information_by_id(key)['in_stock'] - value['quantity']
+                        update_stock(key, new_stock)
                     self.populate_all_tables()
                     self.tbl_pos_invoice.clear()
                     self.txt_pos_customer_email.clear()
                     self.txt_pos_customer_phone.clear()
                     self.txt_pos_customer_address.clear()
                     self.lbl_pos_total_price.clear()
-                    self.populate_pos_products_combo_box()
-                    self.populate_pos_customers_combo_box()
+                    self.populate_all_combo_boxes()
             except Exception as e:
-                self.lbl_pos_results.setText(str(e))
+                self.error_box_popup(str(e))
 
     def btn_pos_add_item_click_handler(self):
         """
@@ -116,7 +118,7 @@ class MainWindow(QMainWindow):
                 self.lbl_pos_results.setText('Item added')
                 self.populate_pos_products_combo_box()
             except Exception as e:
-                self.lbl_pos_results.setText(str(e))
+                self.error_box_popup(str(e))
 
     def btn_pos_remove_item_click_handler(self):
         """
@@ -139,7 +141,7 @@ class MainWindow(QMainWindow):
                 self.populate_pos_invoice()
                 self.populate_pos_products_combo_box()
             except Exception as e:
-                self.lbl_pos_results.setText(str(e))
+                self.error_box_popup(str(e))
 
     def populate_pos_invoice(self):
         """
@@ -166,9 +168,12 @@ class MainWindow(QMainWindow):
             self.tbl_pos_invoice.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
             self.lbl_pos_total_price.setText(f"${str(current_price)}")
         except Exception as e:
-            self.lbl_pos_results.setText(str(e))
+            self.error_box_popup(str(e))
 
     def populate_pos_products_combo_box(self):
+        """
+        method for populating the cmb_pos_items combo box
+        """
         self.cmb_pos_items.clear()
         rows = get_product_names_and_ids()[1]
         self.cmb_pos_items.addItem('-select-', userData='select')
@@ -191,9 +196,13 @@ class MainWindow(QMainWindow):
                 self.txt_pos_customer_email.setText(info['email'])
                 self.txt_pos_customer_phone.setText(info['phone_number'])
             except Exception as e:
-                self.lbl_pos_results.setText(str(e))
+                self.error_box_popup(str(type(e)))
 
     def populate_pos_customers_combo_box(self):
+        """
+        method for populating the cmb_pos_customers combo box
+        """
+
         self.cmb_pos_customer.clear()
         rows = get_customer_names_ids()[1]
         self.cmb_pos_customer.addItem('-select-', userData='select')
@@ -269,7 +278,7 @@ class MainWindow(QMainWindow):
                 self.txt_inventory_update_product_name.setText(info['product_name'])
                 self.txt_inventory_update_vendor.setText(info['vendor'])
             except Exception as e:
-                self.lbl_inventory_update_results.setText(e)
+                self.error_box_popup(str(type(e)))
 
     def btn_inventory_add_item_click_handler(self):
         """
@@ -290,9 +299,9 @@ class MainWindow(QMainWindow):
                 self.txt_inventory_add_amount.clear()
                 self.txt_inventory_add_product_name.clear()
                 self.populate_inventory_table_in_stock()
-                self.populate_inventory_product_combo_box()
+                self.populate_all_combo_boxes()
         except Exception as e:
-            self.lbl_inventory_add_results.setText(str(e))
+            self.error_box_popup(str(e))
 
     def btn_inventory_update_product_clicked_handler(self):
         """
@@ -312,10 +321,10 @@ class MainWindow(QMainWindow):
                 result = update_product_info_using_product_id(product_id, name, description, price, amount)
                 if result == 1:
                     self.lbl_inventory_update_results.setText('Product updated')
-                    self.populate_inventory_product_combo_box()
+                    self.populate_all_combo_boxes()
                     self.populate_inventory_table_in_stock()
             except Exception as e:
-                self.lbl_inventory_update_results.setText(str(e))
+                self.error_box_popup(str(e))
 
     def populate_inventory_table_in_stock(self):
         """
@@ -411,11 +420,11 @@ class MainWindow(QMainWindow):
                 self.txt_customers_new_first_name.clear()
                 self.txt_customers_new_last_name.clear()
                 self.txt_customers_new_phone.clear()
-                self.populate_update_customers_cmb_box()
+                self.populate_all_combo_boxes()
                 self.populate_customer_table()
                 self.populate_active_customers_table()
         except Exception as e:
-            self.lbl_customers_new_results.setText(str(e))
+            self.error_box_popup(str(e))
 
     def btn_customers_delete_customer_clicked_handler(self):
         """
@@ -445,10 +454,10 @@ class MainWindow(QMainWindow):
                         self.txt_customers_update_first_name.clear()
                         self.txt_customers_update_last_name.clear()
                         self.txt_customers_update_phone_num.clear()
-                        self.populate_update_customers_cmb_box()
+                        self.populate_all_combo_boxes()
                         self.populate_all_tables()
             except Exception as e:
-                self.lbl_customers_update_results.setText(str(e))
+                self.error_box_popup(str(e))
 
     def btn_customers_update_customer_clicked_handler(self):
         """
@@ -474,10 +483,10 @@ class MainWindow(QMainWindow):
                     self.txt_customers_update_first_name.clear()
                     self.txt_customers_update_last_name.clear()
                     self.txt_customers_update_phone_num.clear()
-                    self.populate_update_customers_cmb_box()
+                    self.populate_all_combo_boxes()
                     self.populate_all_tables()
             except Exception as e:
-                self.lbl_customers_update_results.setTest(str(e))
+                self.error_box_popup(str(e))
 
     def cmb_customers_update_customer_change_handler(self):
         """
@@ -497,7 +506,7 @@ class MainWindow(QMainWindow):
                 self.txt_customers_update_last_name.setText(info['last_name'])
                 self.txt_customers_update_phone_num.setText(info['phone_number'])
             except Exception as e:
-                self.lbl_customers_update_results.setText(str(e))
+                self.error_box_popup(str(type(e)))
 
     def populate_update_customers_cmb_box(self):
         """
@@ -568,26 +577,11 @@ class MainWindow(QMainWindow):
             self.txt_invoices_date.setText(invoice_info['date'])
             self.populate_invoices_items_table()
         except IndexError:
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Error")
-            msg.setText("Invoice Number does not exist")
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+            self.error_box_popup("Invoice Number does not exist")
         except ValueError:
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Error")
-            msg.setText("Invoice Number must be an integer value")
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+            self.error_box_popup("Invoice Number must be an integer value")
         except Exception as e:
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Error")
-            msg.setText(type(e))
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+            self.error_box_popup(str(type(e)))
 
     def btn_invoices_delete_invoice_clicked_handler(self):
         """
@@ -613,26 +607,11 @@ class MainWindow(QMainWindow):
                 self.tbl_invoices_items_purchased.clear()
                 self.populate_invoices_table()
         except IndexError:
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Error")
-            msg.setText("Invoice Number does not exist")
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+            self.error_box_popup("Invoice Number does not exist")
         except ValueError:
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Error")
-            msg.setText("Invoice Number must be an integer value")
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+            self.error_box_popup("Invoice Number must be an integer value")
         except Exception as e:
-            msg = QMessageBox(self)
-            msg.setWindowTitle("Error")
-            msg.setText(type(e))
-            msg.setIcon(QMessageBox.Icon.Information)
-            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
-            msg.exec()
+            self.error_box_popup(str(type(e)))
 
     def populate_invoices_table(self):
         """
@@ -695,8 +674,26 @@ class MainWindow(QMainWindow):
         self.populate_pos_products_combo_box()
         self.populate_pos_customers_combo_box()
 
+    def error_box_popup(self, message):
+        """
+        method for creating an error message pop up box when an error happens in the app
+
+        :PARAM:
+            message: str: the error message that will be displayed in the error box
+        """
+        msg = QMessageBox(self)
+        msg.setWindowTitle("Error")
+        msg.setText(message)
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+
 
 if __name__ == '__main__':
+    """
+    creates a object of the class QApplication, creates our MainWindow object then shows the main window and 
+    executes the application
+    """
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
