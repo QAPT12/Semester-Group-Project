@@ -153,6 +153,19 @@ def get_all_inventory_information_out_stock():
 
 
 def add_product_to_inventory(vendor_id, product_name, product_description, product_price, stock):
+    """
+    function for adding a new product into the inventory table of the DB
+
+    :PARAM:
+        vendor_id: int: the id of the vendor the product is sold from
+        product_name: str: the name of the product being added
+        product_description: str: brief description of the product
+        product_price: float: the price per unit of the product
+        stock: int: the amount of product being added into the inventory
+
+    :RETURNS:
+        the number of affected rows from the execute_query_commit function
+    """
     assert type(vendor_id) == int, 'vendor id must be an integer value'
     assert type(stock) == int, 'stock value must be an integer value'
     assert type(product_price) == float, 'product price must be numerical'
@@ -166,6 +179,19 @@ def add_product_to_inventory(vendor_id, product_name, product_description, produ
 
 
 def update_product_info_using_product_id(product_id, product_name, product_description, product_price, in_stock):
+    """
+    function for updating a products information in the DB given its product_id
+
+    :PARAM:
+        product_id: int: the id of the product whose information is being updated
+        product_name: str: the name of the product (new or kept the same)
+        product_description: str: brief description of the product (new or kept the same)
+        product_price: float: the price of the product (new or kept the same)
+        in_stock: int: the amount of product in stock (new or kept the same)
+
+    :RETURNS:
+        int: the number of rows affected by the execute_query_commit function
+    """
     assert type(product_id) == int, 'product id must be given as an integer value'
     assert type(product_price) == float, 'product price must be numerical'
     assert type(in_stock) == int, 'stock amount must be integer value'
@@ -176,17 +202,54 @@ def update_product_info_using_product_id(product_id, product_name, product_descr
     return execute_query_commit(sql)
 
 
+def update_stock(product_id, new_amount):
+    """
+    function to update the stock level of a product
+
+    :PARAM:
+        product_id: int: the id of the product whose stock is being changed
+        new_amount: int: the new amount of product in inventory
+
+    :RETURNS:
+        int: the amount of rows affexcted by the execute_query_commit function
+    """
+    sql = f"UPDATE products SET in_stock = {new_amount} WHERE product_id = {product_id};"
+    return execute_query_commit(sql)
+
+
 def get_vendor_names_ids():
+    """
+    function for getting the names and ids of the vendors in the vendor table
+
+    :RETURNS: tuple: the resulting tuple from the execute_query_return_results function containing the column names
+                        and the rows
+    """
     sql = 'SELECT vendor_id, vendor_name FROM vendors;'
     return execute_query_return_results(sql)
 
 
 def get_product_names_and_ids():
+    """
+    function for getting the names of products and their ids from the DB
+
+    :RETURNS:
+        tuple: the resulting tuple from the execute_query_return_results function containing column names and rows
+    """
     sql = 'SELECT product_id, product_name FROM products;'
     return execute_query_return_results(sql)
 
 
 def get_product_information_by_id(product_id):
+    """
+    function for getting the information of a product given its product id
+
+    :PARAM:
+        product_id: int: the id of the product whose information is to be retrieved form the DB
+
+    :RETURNS:
+        product_information: dict: a dictionary containing the information about the product as key value pairs
+    """
+
     assert type(product_id) == int, 'given value for product id must be an INT'
     sql = f'SELECT p.product_id, vendor_name, product_name, product_description, product_price, in_stock FROM ' \
           f'products p JOIN vendors v USING(vendor_id) WHERE product_id = {product_id};'
@@ -233,6 +296,13 @@ def get_invoice_items_by_invoice_id(invoice_id):
 
 
 def get_max_invoice_id():
+    """
+    function for getting the highest invoice id number, this is useful when a new invoices id needs to referenced like
+    when inserting items into the invoice_line_items table
+
+    :RETURNS:
+        int: the current highest invoice_id in the invoices table
+    """
     sql = 'SELECT max(invoice_id) from invoices;'
     return execute_query_return_results(sql)[1][0]
 
@@ -287,3 +357,38 @@ def get_invoices_by_customer_id(customer_id):
     sql = f"SELECT invoice_id from invoices WHERE customer_id = {customer_id};"
     invoices = execute_query_return_results(sql)[1]
     return invoices
+
+
+def add_invoice(invoice_id, customer_id, date, total):
+    """
+    function for adding a new invoice into the invoices table
+
+    :PARAM:
+        invoice_id: int: the id of the new invoice
+        customer_id: int: the id of the customer who the invoice belong to
+        date: datetime.date: the date the invoice is created on
+        total: float: the total amount of all items on the invoice
+
+    :RETURNS:
+        int: the number of rows affected by the execute_query_commit function
+    """
+    sql = f"INSERT INTO `the_athletic_outlet`.`invoices` " \
+          f"(`invoice_id`, `customer_id`, `order_date`, `invoice_total`) " \
+          f"VALUES ('{invoice_id}', '{customer_id}', '{date}', '{total}');"
+    return execute_query_commit(sql)
+
+
+def add_invoice_line_item(invoice_id, product_id, quantity):
+    """
+    function to add items to the invoice_line_items table when a new invoice is created
+
+    :PARAM:
+        invoice_id: int: the id of the invoice the item belongs to
+        product_idL intL the id of the product
+        quantity: int: the amount of the product that was sold on the given invoice
+
+    :RETURNS:
+        int: the number of rows affected by the execute_query_commit function
+    """
+    sql = f"INSERT INTO invoice_line_items VALUES(default, {invoice_id}, {product_id}, {quantity})"
+    return execute_query_commit(sql)
